@@ -1080,7 +1080,7 @@ CREATE POLICY "app_access" ON rrh_records  FOR ALL TO anon USING (true) WITH CHE
       <div class="fg"><label>Username</label><input class="fi" id="l-user" type="text" placeholder="Enter username" autocomplete="username"/></div>
       <div class="fg"><label>Password</label><input class="fi" id="l-pass" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
       <button class="abtn" onclick="doLogin()">Sign In</button>
-      <div style="margin-top:10px;font-size:0.6rem;color:var(--muted2);text-align:center">Default admin: <span style="color:var(--blue)">admin</span> / <span style="color:var(--blue)">admin123</span></div>
+      <div style="margin-top:10px;font-size:0.6rem;color:var(--muted2);text-align:center">Developed By: <span style="color:var(--blue)">Artatrana Sethi (JTO)</span> / <span style="color:var(--blue)">9439325400</span></div>
     </div>
     <!-- REQUEST ACCESS -->
     <div class="apnl" id="panel-request">
@@ -1342,8 +1342,8 @@ VSWR_0                =  1.220000
 // Admin: run the setup wizard once, download the configured file,
 // then re-upload to Netlify. All users will skip setup automatically.
 // ═══════════════════════════════════════════════════════════════
-const SUPABASE_URL = '';  // ← auto-filled by setup wizard
-const SUPABASE_KEY = '';  // ← auto-filled by setup wizard
+const SUPABASE_URL = 'https://zzfcjanneqlclagcbxax.supabase.co';  // configured
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6ZmNqYW5uZXFsY2xhZ2NieGF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNzkxNDIsImV4cCI6MjA4Nzk1NTE0Mn0.f1vxfX4b29iwoFARcMXu5k0emdnrkfKjhZNaHCZSnqw';  // configured
 // ═══════════════════════════════════════════════════════════════
 const CFG_URL='tejas_sb_url', CFG_KEY='tejas_sb_key', SES_KEY='tejas_ses_v5';
 let _pendingUrl='', _pendingKey=''; // set after successful test, used by downloadConfigured()
@@ -2681,7 +2681,7 @@ function cleanStr(s){
      .replace(/â€˜/g,"'")   // â€˜ (left single quote mojibake)
      .replace(/â€™/g,"'")   // â€™ (right single quote mojibake)
      .replace(/â€œ/g,'"')   // â€œ (left double quote mojibake)
-     .replace(/â€�/g,'-')   // catch-all em-dash mojibake
+     .replace(/â€ /g,'-')   // catch-all em-dash mojibake
      .replace(/â€["""''–—-ÿ]/g,'-')  // broad catch for â€ + any following char
      .replace(/Ã‚Â°/g,' deg').replace(/Ã‚Â±/g,'+/-');  // degree / plusminus mojibake
   // 2. Real Unicode → ASCII substitutions
