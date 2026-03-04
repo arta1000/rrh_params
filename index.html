@@ -1,0 +1,2877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tejas RRH Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   TEJAS RRH · INTELLIGENCE PLATFORM
+   Design: Cyberpunk Holographic — v3.0
+   ═══════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root{
+  /* Backgrounds */
+  --bg:        #020912;
+  --bg2:       #040e1c;
+  --surface:   rgba(4,18,36,.85);
+  --surface2:  rgba(0,30,55,.9);
+  /* Borders */
+  --border:    rgba(0,200,255,.08);
+  --border2:   rgba(0,200,255,.15);
+  --border3:   rgba(0,200,255,.28);
+  /* Text */
+  --text:      #e4f4ff;
+  --text2:     #7fb8d4;
+  --muted:     #3d6a84;
+  --muted2:    #2a4a5e;
+  /* Primary: Electric Cyan */
+  --blue:      #00c8ff;
+  --blue2:     #0090cc;
+  --blue-dim:  rgba(0,200,255,.08);
+  --blue-glow: rgba(0,200,255,.35);
+  /* Status */
+  --ok:        #00ff9d;
+  --ok-dim:    rgba(0,255,157,.07);
+  --warn:      #ffb800;
+  --warn-dim:  rgba(255,184,0,.08);
+  --fail:      #ff2d55;
+  --fail-dim:  rgba(255,45,85,.08);
+  /* Accents */
+  --purple:    #bf5fff;
+  --cyan:      #00c8ff;
+  --magenta:   #ff00aa;
+  --acid:      #00ff9d;
+  /* Fonts */
+  --sans:      'Exo 2', sans-serif;
+  --display:   'Rajdhani', sans-serif;
+  --mono:      'JetBrains Mono', monospace;
+  /* Shape */
+  --radius:    4px;
+  --radius2:   6px;
+  --shadow:    0 4px 32px rgba(0,0,0,.7);
+  --shadow2:   0 8px 64px rgba(0,0,0,.9), 0 0 0 1px rgba(0,200,255,.06);
+  --glow:      0 0 20px rgba(0,200,255,.2), 0 0 40px rgba(0,200,255,.08);
+  --glow-ok:   0 0 16px rgba(0,255,157,.25);
+  --glow-fail: 0 0 16px rgba(255,45,85,.25);
+  --transition: all .15s cubic-bezier(.4,0,.2,1);
+  /* Aliases for legacy HTML references */
+  --info:      var(--cyan);
+  --warn-glow: rgba(255,184,0,.3);
+  --ok-glow:   rgba(0,255,157,.3);
+}
+
+html{height:100%;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:14px;
+  height:100%;
+  overflow:hidden;
+}
+
+/* ── ATMOSPHERIC BACKGROUND ── */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(180deg, rgba(0,200,255,.025) 0%, transparent 40%),
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,200,255,.07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 90% 90%, rgba(191,95,255,.04) 0%, transparent 50%);
+  pointer-events:none;
+  z-index:0;
+}
+/* Animated grid */
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(0,200,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,255,.03) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+  z-index:0;
+  animation:gridShift 20s linear infinite;
+}
+@keyframes gridShift{from{background-position:0 0;}to{background-position:40px 40px;}}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(0,200,255,.2);border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,200,255,.4);}
+
+/* ── LOADER ── */
+#loader{
+  position:fixed;inset:0;
+  background:var(--bg);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:9999;gap:18px;
+}
+#loader.show{display:flex;}
+.spin{
+  width:36px;height:36px;
+  border:1px solid rgba(0,200,255,.2);
+  border-top-color:var(--blue);
+  border-radius:50%;
+  animation:spin .6s linear infinite;
+  box-shadow:0 0 20px rgba(0,200,255,.3);
+}
+#lmsg{font-family:var(--mono);font-size:.62rem;color:var(--blue);letter-spacing:4px;text-transform:uppercase;opacity:.7;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9998;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.toast{
+  font-family:var(--mono);font-size:.68rem;
+  padding:9px 16px;
+  border-radius:var(--radius);
+  backdrop-filter:blur(20px);
+  pointer-events:auto;
+  animation:toastIn .2s ease;
+  display:flex;align-items:center;gap:8px;
+  max-width:340px;
+  clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+  letter-spacing:.5px;
+}
+.tok{background:rgba(0,255,157,.07);border:1px solid rgba(0,255,157,.3);color:var(--ok);box-shadow:0 0 20px rgba(0,255,157,.1);}
+.twrn{background:rgba(255,184,0,.07);border:1px solid rgba(255,184,0,.3);color:var(--warn);box-shadow:0 0 20px rgba(255,184,0,.1);}
+.terr{background:rgba(255,45,85,.07);border:1px solid rgba(255,45,85,.3);color:var(--fail);box-shadow:0 0 20px rgba(255,45,85,.1);}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)translateY(4px);}to{opacity:1;transform:none;}}
+
+/* ════════════════════════
+   SETUP SCREEN
+   ════════════════════════ */
+#setup-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:800;overflow-y:auto;padding:40px 20px;}
+#setup-screen.show{display:block;}
+.sw-wrap{max-width:720px;margin:0 auto;}
+.sw-top{text-align:center;margin-bottom:32px;}
+.sw-hex{
+  width:56px;height:56px;
+  background:var(--blue-dim);
+  border:1px solid var(--blue-glow);
+  border-radius:var(--radius);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;
+  color:var(--blue);
+  box-shadow:var(--glow);
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+}
+.sw-hex svg{width:24px;height:24px;fill:currentColor;}
+.sw-title{font-family:var(--display);font-size:1.7rem;font-weight:700;color:var(--text);letter-spacing:2px;text-transform:uppercase;}
+.sw-sub{font-size:.65rem;color:var(--muted);margin-top:5px;letter-spacing:2px;text-transform:uppercase;font-family:var(--mono);}
+.sw-steps{display:flex;flex-direction:column;gap:10px;}
+.sc{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  overflow:hidden;
+  position:relative;
+  backdrop-filter:blur(10px);
+}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--blue),transparent);opacity:.4;}
+.sc-hdr{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;cursor:pointer;user-select:none;}
+.sc-num{
+  min-width:26px;height:26px;
+  background:var(--blue-dim);
+  border:1px solid var(--blue);
+  color:var(--blue);
+  font-family:var(--mono);font-size:.62rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+}
+.sc-title{font-family:var(--display);font-weight:600;font-size:.88rem;color:var(--text);margin-bottom:3px;letter-spacing:.5px;text-transform:uppercase;}
+.sc-desc{font-size:.65rem;color:var(--muted);line-height:1.5;font-family:var(--mono);}
+.sc-body{padding:0 18px 14px;}
+.sw-inp{
+  width:100%;
+  background:rgba(0,0,0,.4);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  color:var(--text);
+  font-family:var(--mono);font-size:.72rem;
+  padding:9px 13px;
+  outline:none;
+  transition:var(--transition);
+}
+.sw-inp:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,200,255,.15),var(--glow);}
+.sw-note{
+  font-size:.64rem;color:var(--text2);
+  background:rgba(0,200,255,.03);
+  border:1px solid var(--border);
+  border-left:2px solid var(--blue);
+  padding:10px 13px;
+  border-radius:0 var(--radius) var(--radius) 0;
+  line-height:1.7;margin-top:10px;
+  font-family:var(--mono);
+}
+.sw-note a{color:var(--blue);}
+.sw-note code{background:rgba(0,200,255,.08);padding:1px 5px;border-radius:2px;font-family:var(--mono);font-size:.65rem;color:var(--ok);}
+.sw-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.sw-ok{font-size:.65rem;line-height:1.7;font-family:var(--mono);}
+.sw-ok.show{display:block;}
+.sw-ok:not(.show){display:none;}
+.sw-err{font-size:.65rem;line-height:1.7;color:var(--fail);background:var(--fail-dim);border:1px solid rgba(255,45,85,.2);border-radius:var(--radius);padding:10px 13px;margin-top:8px;display:none;font-family:var(--mono);}
+.sw-err.show{display:block;}
+#file-warn{display:none;background:var(--fail-dim);border:1px solid rgba(255,45,85,.3);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;font-size:.68rem;color:var(--fail);line-height:1.7;font-family:var(--mono);}
+#file-warn.show{display:block;}
+
+/* ════════════════════════
+   LOGIN SCREEN
+   ════════════════════════ */
+#login-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:700;overflow:hidden;}
+#login-screen.show{display:flex;align-items:center;justify-content:center;}
+#login-screen::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 60% at 30% 50%, rgba(0,200,255,.05) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 75% 30%, rgba(191,95,255,.04) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 30% at 60% 80%, rgba(255,0,170,.03) 0%, transparent 60%);
+  pointer-events:none;
+}
+.lw{width:100%;max-width:400px;position:relative;z-index:1;}
+.lb{
+  background:rgba(2,14,28,.9);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:28px;
+  box-shadow:var(--shadow2),var(--glow);
+  animation:fadeUp .35s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;
+  backdrop-filter:blur(20px);
+}
+.lb::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg, transparent, var(--blue) 50%, transparent);
+}
+.lt{text-align:center;margin-bottom:22px;}
+.lhex{
+  width:52px;height:52px;
+  background:var(--blue-dim);
+  border:1px solid var(--blue);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 14px;
+  color:var(--blue);
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  box-shadow:var(--glow);
+  animation:hexPulse 3s ease-in-out infinite;
+}
+@keyframes hexPulse{0%,100%{box-shadow:var(--glow);}50%{box-shadow:0 0 30px rgba(0,200,255,.4),0 0 60px rgba(0,200,255,.15);}}
+.lhex svg{width:22px;height:22px;fill:currentColor;}
+.ltitle{font-family:var(--display);font-size:1.4rem;font-weight:700;color:var(--text);letter-spacing:3px;text-transform:uppercase;}
+.lsub{font-size:.58rem;color:var(--muted);margin-top:5px;letter-spacing:3px;text-transform:uppercase;font-family:var(--mono);}
+.atabs{display:flex;gap:1px;background:rgba(0,200,255,.05);padding:2px;border-radius:var(--radius);margin-bottom:18px;border:1px solid var(--border);}
+.atab{flex:1;padding:7px;font-family:var(--mono);font-size:.65rem;font-weight:600;background:transparent;border:none;color:var(--muted);cursor:pointer;border-radius:3px;transition:var(--transition);letter-spacing:1px;text-transform:uppercase;}
+.atab.active{background:rgba(0,200,255,.1);color:var(--blue);box-shadow:0 0 12px rgba(0,200,255,.15);}
+.apnl{display:none;animation:fadeUp .2s ease;}
+.apnl.active{display:block;}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.fg label{font-family:var(--mono);font-size:.58rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:2px;}
+.fi{
+  background:rgba(0,0,0,.5);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  color:var(--text);
+  font-family:var(--sans);font-size:.8rem;
+  padding:9px 12px;
+  outline:none;width:100%;
+  transition:var(--transition);
+}
+.fi:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,200,255,.12);}
+select.fi option{background:#040e1c;}
+.aerr{display:none;font-size:.65rem;line-height:1.6;color:var(--fail);background:var(--fail-dim);border:1px solid rgba(255,45,85,.2);border-radius:var(--radius);padding:9px 12px;margin-bottom:12px;font-family:var(--mono);}
+.aerr.show{display:block;}
+.aok{display:none;font-size:.65rem;line-height:1.6;color:var(--ok);background:var(--ok-dim);border:1px solid rgba(0,255,157,.2);border-radius:var(--radius);padding:9px 12px;margin-bottom:12px;font-family:var(--mono);}
+.aok.show{display:block;}
+.abtn{
+  width:100%;padding:10px;
+  font-family:var(--display);font-size:.9rem;font-weight:700;
+  background:linear-gradient(135deg, rgba(0,144,204,.9), rgba(0,200,255,.7));
+  color:#fff;border:1px solid var(--blue);
+  border-radius:var(--radius);cursor:pointer;
+  letter-spacing:2px;text-transform:uppercase;
+  transition:var(--transition);margin-top:4px;
+  position:relative;overflow:hidden;
+  clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+.abtn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,.05));pointer-events:none;}
+.abtn:hover{background:linear-gradient(135deg,rgba(0,200,255,.9),rgba(0,255,157,.5));box-shadow:0 0 24px rgba(0,200,255,.4);transform:translateY(-1px);}
+.abtn-w{background:rgba(0,200,255,.04);border:1px solid var(--border2);color:var(--text2);clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));}
+.abtn-w:hover{background:rgba(0,200,255,.08);color:var(--text);}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pend-notice{background:var(--warn-dim);border:1px solid rgba(255,184,0,.2);border-radius:var(--radius);padding:11px 13px;margin-top:12px;font-size:.63rem;color:var(--warn);line-height:1.7;font-family:var(--mono);}
+
+/* ════════════════════════
+   APP SHELL
+   ════════════════════════ */
+#app{display:none;height:100vh;flex-direction:column;position:relative;z-index:1;}
+#app.show{display:flex;}
+
+/* ── Top Bar ── */
+nav{
+  height:52px;
+  background:rgba(2,9,18,.92);
+  border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;
+  padding:0 20px;gap:14px;
+  flex-shrink:0;position:relative;z-index:100;
+  backdrop-filter:blur(20px);
+}
+nav::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--blue) 30%,var(--cyan) 50%,var(--blue) 70%,transparent);
+  opacity:.35;
+}
+.nbrand{display:flex;align-items:center;gap:11px;min-width:200px;}
+.nhex{
+  width:30px;height:30px;
+  background:var(--blue-dim);
+  border:1px solid var(--blue);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--blue);
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  box-shadow:0 0 12px rgba(0,200,255,.2);
+}
+.nhex svg{width:14px;height:14px;fill:currentColor;}
+.ntitle{font-family:var(--display);font-size:.95rem;font-weight:700;color:var(--text);letter-spacing:2px;text-transform:uppercase;}
+.nsub{font-family:var(--mono);font-size:.48rem;color:var(--muted);letter-spacing:2px;margin-top:1px;}
+.ntabs{display:flex;align-items:center;gap:1px;flex:1;padding:0 12px;}
+.ntab{
+  padding:5px 13px;
+  font-family:var(--mono);font-size:.65rem;font-weight:600;
+  background:transparent;border:none;
+  color:var(--muted);cursor:pointer;
+  border-radius:2px;letter-spacing:1px;text-transform:uppercase;
+  transition:var(--transition);
+  display:flex;align-items:center;gap:6px;
+  position:relative;
+}
+.ntab:hover{color:var(--text);}
+.ntab.active{color:var(--blue);}
+.ntab.active::after{
+  content:'';position:absolute;bottom:-14px;left:0;right:0;height:2px;
+  background:var(--blue);
+  box-shadow:0 0 8px var(--blue);
+}
+.ntab svg{width:12px;height:12px;fill:currentColor;opacity:.7;}
+.ntab.active svg{opacity:1;}
+.pbdg{font-family:var(--mono);font-size:.48rem;font-weight:700;background:var(--fail);color:#fff;padding:1px 5px;border-radius:2px;display:none;box-shadow:0 0 8px rgba(255,45,85,.4);}
+.pbdg.show{display:inline-block;}
+.nright{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.ncount{font-family:var(--mono);font-size:.58rem;color:var(--muted);white-space:nowrap;padding:3px 9px;background:rgba(0,200,255,.04);border:1px solid var(--border);border-radius:2px;}
+.ncount span{color:var(--blue);font-weight:700;}
+.nbtn{
+  font-family:var(--mono);font-size:.58rem;font-weight:700;
+  padding:5px 11px;border-radius:var(--radius);cursor:pointer;
+  letter-spacing:1px;text-transform:uppercase;
+  transition:var(--transition);white-space:nowrap;
+  border:1px solid var(--border2);
+}
+.nbtn-sync{background:transparent;color:var(--text2);}
+.nbtn-sync:hover{background:rgba(0,200,255,.06);color:var(--blue);border-color:var(--blue);}
+.nbtn-out{background:transparent;color:var(--muted);border-color:transparent;}
+.nbtn-out:hover{color:var(--fail);border-color:rgba(255,45,85,.3);}
+.nuser{display:flex;align-items:center;gap:8px;}
+.nuname{font-family:var(--mono);font-size:.68rem;font-weight:600;color:var(--text);}
+.rp{font-family:var(--mono);font-size:.5rem;font-weight:700;padding:2px 7px;border-radius:2px;letter-spacing:1px;text-transform:uppercase;}
+.rpa{background:rgba(191,95,255,.1);color:var(--purple);border:1px solid rgba(191,95,255,.3);box-shadow:0 0 8px rgba(191,95,255,.1);}
+.rpu{background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue-glow);}
+
+/* ── Page Layout ── */
+.app-body{flex:1;overflow:hidden;display:flex;}
+.page{display:none;flex:1;overflow-y:auto;padding:22px 26px 40px;animation:fadeUp .22s cubic-bezier(.4,0,.2,1);}
+.page.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+/* ── Page Header ── */
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.ph-left{}
+.ph-title{
+  font-family:var(--display);font-size:1.5rem;font-weight:700;
+  color:var(--text);letter-spacing:2px;text-transform:uppercase;
+  text-shadow:0 0 30px rgba(0,200,255,.15);
+}
+.ph-sub{font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-top:4px;letter-spacing:1px;}
+.ph-actions{display:flex;align-items:center;gap:8px;}
+
+/* ════════════════════════
+   BUTTONS
+   ════════════════════════ */
+.btn{
+  font-family:var(--mono);font-size:.65rem;font-weight:600;
+  padding:7px 14px;border-radius:var(--radius);cursor:pointer;
+  letter-spacing:1px;text-transform:uppercase;
+  transition:var(--transition);border:1px solid transparent;
+  display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+  position:relative;
+}
+.bp{
+  background:linear-gradient(135deg,rgba(0,144,204,.8),rgba(0,200,255,.6));
+  color:var(--text);border-color:var(--blue);
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
+}
+.bp:hover{background:linear-gradient(135deg,rgba(0,200,255,.8),rgba(0,255,157,.4));box-shadow:0 0 20px rgba(0,200,255,.3);transform:translateY(-1px);}
+.bo{background:transparent;color:var(--text2);border-color:var(--border2);}
+.bo:hover{background:rgba(0,200,255,.05);color:var(--blue);border-color:var(--blue);}
+.bg2{background:rgba(0,200,255,.04);color:var(--text2);border-color:var(--border2);}
+.bg2:hover{background:rgba(0,200,255,.08);color:var(--text);}
+.bd{background:rgba(255,45,85,.07);color:var(--fail);border-color:rgba(255,45,85,.3);}
+.bd:hover{background:rgba(255,45,85,.14);box-shadow:0 0 12px rgba(255,45,85,.2);}
+.bw{background:rgba(255,184,0,.07);color:var(--warn);border-color:rgba(255,184,0,.3);}
+.bw:hover{background:rgba(255,184,0,.14);}
+.bpurple{background:rgba(191,95,255,.08);color:var(--purple);border-color:rgba(191,95,255,.3);}
+.bpurple:hover{background:rgba(191,95,255,.16);}
+.bapprove{background:rgba(0,255,157,.08);color:var(--ok);border-color:rgba(0,255,157,.3);}
+.bapprove:hover{background:rgba(0,255,157,.15);box-shadow:0 0 12px rgba(0,255,157,.2);}
+.breject{background:rgba(255,45,85,.07);color:var(--fail);border-color:rgba(255,45,85,.3);}
+.breject:hover{background:rgba(255,45,85,.14);}
+.bsm{font-size:.58rem;padding:5px 10px;}
+.bxs{font-size:.54rem;padding:3px 8px;}
+/* icon button */
+.ibtn{
+  width:28px;height:28px;
+  border:1px solid var(--border2);
+  background:transparent;
+  border-radius:var(--radius);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  color:var(--muted);transition:var(--transition);
+}
+.ibtn:hover{background:rgba(0,200,255,.08);color:var(--blue);border-color:var(--blue);box-shadow:0 0 8px rgba(0,200,255,.15);}
+.ibtn.del:hover{background:rgba(255,45,85,.08);color:var(--fail);border-color:rgba(255,45,85,.3);}
+.ibtn svg{width:12px;height:12px;fill:currentColor;}
+.act-row{display:flex;align-items:center;gap:3px;flex-wrap:nowrap;justify-content:flex-start;}
+
+/* ════════════════════════
+   SEARCH / FILTER BAR
+   ════════════════════════ */
+.rtb{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  margin-bottom:14px;padding:10px 14px;
+  background:rgba(0,200,255,.02);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  backdrop-filter:blur(8px);
+}
+.sbx{
+  flex:1;min-width:160px;
+  background:rgba(0,0,0,.4);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  color:var(--text);font-family:var(--mono);font-size:.72rem;
+  padding:6px 12px 6px 32px;outline:none;
+  transition:var(--transition);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24'%3E%3Cpath d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' stroke='%2300c8ff' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:10px center;
+}
+.sbx:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,200,255,.1);}
+.fsl{
+  background:rgba(0,0,0,.4);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  color:var(--text2);font-family:var(--mono);font-size:.65rem;
+  padding:6px 10px;outline:none;cursor:pointer;transition:var(--transition);
+}
+.fsl:focus{border-color:var(--blue);}
+.rtb-divider{width:1px;height:18px;background:var(--border2);}
+
+/* ════════════════════════
+   RECORDS TABLE
+   ════════════════════════ */
+.rec-table-wrap{
+  background:rgba(2,14,28,.7);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  overflow:hidden;
+  backdrop-filter:blur(8px);
+  position:relative;
+}
+.rec-table-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--blue) 30%,var(--cyan) 50%,var(--blue) 70%,transparent);opacity:.3;}
+.rec-table{width:100%;border-collapse:collapse;}
+.rec-table thead tr{background:rgba(0,200,255,.04);border-bottom:1px solid var(--border2);}
+.rec-table thead th{
+  padding:10px 16px;
+  font-family:var(--mono);font-size:.56rem;font-weight:700;
+  color:var(--blue);text-transform:uppercase;letter-spacing:2px;
+  text-align:left;white-space:nowrap;
+}
+.rec-table tbody tr{border-bottom:1px solid var(--border);transition:background .15s;cursor:pointer;}
+.rec-table tbody tr:last-child{border-bottom:none;}
+.rec-table tbody tr:hover{background:rgba(0,200,255,.04);box-shadow:inset 0 0 20px rgba(0,200,255,.03);}
+.rec-table tbody td{padding:11px 16px;font-size:.78rem;vertical-align:middle;}
+.rt-name{font-family:var(--display);font-weight:600;color:var(--text);font-size:.86rem;letter-spacing:.3px;}
+.rt-sub{font-family:var(--mono);font-size:.58rem;color:var(--muted);margin-top:2px;}
+.rt-mono{font-family:var(--mono);font-size:.68rem;color:var(--text2);}
+/* health bar */
+.hp-cell{display:flex;align-items:center;gap:8px;}
+.hp-num{font-family:var(--mono);font-size:.75rem;font-weight:700;min-width:36px;}
+.hp-bar{flex:1;min-width:50px;height:3px;background:var(--border);border-radius:1px;overflow:hidden;}
+.hp-fill{height:100%;border-radius:1px;transition:width .4s ease;}
+/* status badge */
+.sbdg{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 8px;border-radius:2px;
+  font-family:var(--mono);font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  clip-path:polygon(0 0,calc(100% - 5px) 0,100% 5px,100% 100%,5px 100%,0 calc(100% - 5px));
+}
+.sbdg::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;animation:statusPulse 2s ease-in-out infinite;}
+@keyframes statusPulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.dok2{color:var(--ok);background:rgba(0,255,157,.07);border:1px solid rgba(0,255,157,.2);}
+.dwn2{color:var(--warn);background:rgba(255,184,0,.07);border:1px solid rgba(255,184,0,.2);}
+.dfl2{color:var(--fail);background:rgba(255,45,85,.07);border:1px solid rgba(255,45,85,.2);}
+/* issue chips */
+.chip{display:inline-flex;padding:2px 6px;border-radius:2px;font-family:var(--mono);font-size:.52rem;font-weight:600;margin:1px;}
+.cf{background:rgba(255,45,85,.08);color:var(--fail);border:1px solid rgba(255,45,85,.2);}
+.cw{background:rgba(255,184,0,.08);color:var(--warn);border:1px solid rgba(255,184,0,.2);}
+.cok{background:rgba(0,255,157,.08);color:var(--ok);border:1px solid rgba(0,255,157,.2);}
+/* footer */
+.tfoot{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-top:1px solid var(--border);font-family:var(--mono);font-size:.6rem;color:var(--muted);}
+.pg-btns{display:flex;gap:3px;}
+.pg-btn{width:26px;height:26px;border:1px solid var(--border2);background:transparent;border-radius:var(--radius);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.6rem;color:var(--text2);transition:var(--transition);}
+.pg-btn:hover{background:rgba(0,200,255,.06);color:var(--blue);}
+.pg-btn.active{background:rgba(0,200,255,.15);color:var(--blue);border-color:var(--blue);}
+/* grid */
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+@media(max-width:900px){.rg{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.rg{grid-template-columns:1fr;}}
+/* empty */
+.empty{padding:60px 20px;text-align:center;color:var(--muted);}
+.empty-i{font-size:2rem;margin-bottom:10px;opacity:.2;}
+.empty-t{font-family:var(--display);font-size:.9rem;font-weight:600;color:var(--text2);margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;}
+.empty-s{font-family:var(--mono);font-size:.62rem;}
+
+/* ════════════════════════
+   VIEW-ONLY BANNER
+   ════════════════════════ */
+.vo-ban{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(0,200,255,.04);
+  border:1px solid var(--border2);
+  border-left:2px solid var(--blue);
+  border-radius:var(--radius);
+  padding:9px 14px;margin-bottom:14px;
+  font-family:var(--mono);font-size:.65rem;color:var(--blue);
+}
+.vo-ico{font-size:.9rem;}
+
+/* ════════════════════════
+   CARDS
+   ════════════════════════ */
+.card{
+  background:rgba(2,14,28,.8);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:18px;
+  backdrop-filter:blur(10px);
+  position:relative;
+  transition:border-color .2s;
+}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--blue),transparent);opacity:.25;}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sh h2{
+  font-family:var(--display);font-size:.78rem;font-weight:700;
+  color:var(--blue);letter-spacing:2px;text-transform:uppercase;
+}
+.stag{font-family:var(--mono);font-size:.58rem;color:var(--muted);}
+.fld{display:flex;flex-direction:column;gap:5px;}
+.fld label{font-family:var(--mono);font-size:.58rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:2px;}
+.fld-ok>input,.fld-ok>select,.fld-ok>textarea{border-color:rgba(0,255,157,.3)!important;box-shadow:0 0 0 1px rgba(0,255,157,.1)!important;}
+.fld-ok>label{color:var(--ok)!important;}
+.fld-err>input,.fld-err>select,.fld-err>textarea{border-color:rgba(255,45,85,.35)!important;box-shadow:0 0 0 1px rgba(255,45,85,.1)!important;}
+.fld-err>label{color:var(--fail)!important;}
+.fld input,.fld select,.fld textarea{
+  background:rgba(0,0,0,.5);border:1px solid var(--border2);border-radius:var(--radius);
+  color:var(--text);font-family:var(--sans);font-size:.8rem;
+  padding:8px 11px;outline:none;transition:var(--transition);
+}
+.fld select{cursor:pointer;}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,200,255,.1);}
+.mg4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
+@media(max-width:900px){.mg4{grid-template-columns:1fr 1fr;}}
+textarea#paste-area{width:100%;min-height:150px;resize:vertical;font-family:var(--mono);font-size:.68rem;line-height:1.7;margin-bottom:12px;}
+.br{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+/* analyze results */
+.sb5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px;}
+.sbc{
+  background:rgba(2,14,28,.9);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:12px 14px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.sbc::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;}
+.bok::before{background:var(--ok);box-shadow:0 0 8px var(--ok);}
+.bwn::before{background:var(--warn);box-shadow:0 0 8px var(--warn);}
+.bfl::before{background:var(--fail);box-shadow:0 0 8px var(--fail);}
+.bneu::before{background:var(--blue);box-shadow:0 0 8px var(--blue);}
+.sbn{font-family:var(--display);font-size:1.6rem;font-weight:700;}
+.sbl{font-family:var(--mono);font-size:.5rem;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-top:3px;}
+.gw{height:3px;background:var(--border);border-radius:1px;overflow:hidden;margin-top:5px;}
+.gf{height:100%;border-radius:1px;transition:width .6s ease;}
+.abn{background:rgba(255,184,0,.04);border:1px solid rgba(255,184,0,.2);border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;}
+.abn-t{font-family:var(--mono);font-size:.58rem;font-weight:700;color:var(--warn);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.chips{display:flex;flex-wrap:wrap;gap:4px;}
+
+/* param tables */
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{
+  padding:8px 13px;font-family:var(--mono);font-size:.54rem;font-weight:700;
+  color:var(--blue);text-transform:uppercase;letter-spacing:2px;
+  text-align:left;background:rgba(0,200,255,.04);border-bottom:1px solid var(--border2);
+}
+tbody tr{border-bottom:1px solid var(--border);}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:rgba(0,200,255,.03);}
+tbody td{padding:8px 13px;font-size:.73rem;}
+.rt{font-family:var(--mono);font-size:.67rem;}
+code{font-family:var(--mono);font-size:.65rem;background:rgba(0,200,255,.06);padding:1px 5px;border-radius:2px;color:var(--cyan);}
+.cna{color:var(--muted);}
+.cwn{color:var(--warn);}
+.cfl{color:var(--fail);}
+.dok{color:var(--ok);}
+.dwn{color:var(--warn);}
+.dfl{color:var(--fail);}
+.dna{color:var(--muted);}
+
+/* eNodeB info bar */
+.eb{
+  background:rgba(0,200,255,.02);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:12px 16px;
+  display:flex;align-items:center;gap:14px;margin-bottom:10px;
+}
+.ei label{font-family:var(--mono);font-size:.52rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:2px;display:block;margin-bottom:3px;}
+.ei span{font-family:var(--mono);font-size:.74rem;color:var(--cyan);}
+.esep{width:1px;height:28px;background:var(--border2);}
+
+/* ════════════════════════
+   DASHBOARD
+   ════════════════════════ */
+.dg3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+.dc{
+  background:rgba(2,14,28,.8);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:14px 16px;
+  backdrop-filter:blur(8px);
+  position:relative;overflow:hidden;
+  transition:border-color .2s;
+}
+.dc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--blue),transparent);opacity:.2;}
+.dc:hover{border-color:rgba(0,200,255,.25);}
+.dct{font-family:var(--mono);font-size:.56rem;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:2px;margin-bottom:7px;}
+.dn{font-family:var(--display);font-size:2rem;font-weight:700;color:var(--text);}
+.ds{font-family:var(--mono);font-size:.58rem;color:var(--muted);margin-top:3px;}
+.il{display:flex;flex-direction:column;gap:3px;margin-top:6px;}
+.ir{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-radius:var(--radius);background:rgba(0,0,0,.3);}
+.irf{border-left:2px solid var(--fail);}
+.irw{border-left:2px solid var(--warn);}
+.iname{font-family:var(--sans);font-size:.66rem;font-weight:600;color:var(--text2);}
+.isite{font-family:var(--mono);font-size:.54rem;color:var(--muted);margin-top:1px;}
+.icnt{font-family:var(--mono);font-size:.72rem;font-weight:700;color:var(--text);}
+.bc{display:flex;flex-direction:column;gap:4px;margin-top:5px;}
+.brow{display:flex;align-items:center;gap:8px;}
+.blbl{font-family:var(--mono);font-size:.58rem;color:var(--text2);min-width:140px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.btrk{flex:1;height:4px;background:var(--border);border-radius:1px;overflow:hidden;}
+.bfil{height:100%;border-radius:1px;}
+.bfok{background:var(--ok);box-shadow:0 0 4px rgba(0,255,157,.4);}
+.bfwn{background:var(--warn);box-shadow:0 0 4px rgba(255,184,0,.4);}
+.bffl{background:var(--fail);box-shadow:0 0 4px rgba(255,45,85,.4);}
+.bval{font-family:var(--mono);font-size:.58rem;color:var(--text2);min-width:36px;text-align:right;}
+
+/* ════════════════════════
+   ADMIN
+   ════════════════════════ */
+.atabs2{
+  display:flex;gap:1px;
+  background:rgba(0,200,255,.03);
+  padding:2px;
+  border-radius:var(--radius);margin-bottom:14px;
+  width:fit-content;
+  border:1px solid var(--border);
+}
+.atab2{
+  padding:6px 15px;font-family:var(--mono);font-size:.65rem;font-weight:600;
+  background:transparent;border:none;color:var(--muted);cursor:pointer;border-radius:2px;
+  transition:var(--transition);letter-spacing:1px;text-transform:uppercase;
+}
+.atab2.active{background:rgba(0,200,255,.1);color:var(--blue);box-shadow:0 0 10px rgba(0,200,255,.1);}
+.admpl{display:none;}
+.admpl.active{display:block;}
+
+/* request cards */
+.req-card{
+  background:rgba(2,14,28,.85);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:14px;margin-bottom:8px;
+  position:relative;overflow:hidden;
+  backdrop-filter:blur(8px);
+  transition:border-color .2s;
+}
+.req-card:hover{border-color:rgba(0,200,255,.25);}
+.req-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,184,0,.4),transparent);}
+.req-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:9px;}
+.req-nm{font-family:var(--display);font-weight:600;font-size:.88rem;color:var(--text);letter-spacing:.5px;}
+.req-ts{font-family:var(--mono);font-size:.56rem;color:var(--muted);margin-top:2px;}
+.rb-p{font-family:var(--mono);font-size:.5rem;font-weight:700;padding:2px 7px;border-radius:2px;color:var(--warn);background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.3);letter-spacing:1px;}
+.req-dg{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:9px;}
+.req-di{}
+.req-dlb{font-family:var(--mono);font-size:.5rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:3px;}
+.req-dv{font-family:var(--sans);font-size:.7rem;color:var(--text2);}
+.req-rsn{font-family:var(--mono);font-size:.64rem;color:var(--text2);background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:var(--radius);padding:7px 11px;margin-bottom:9px;line-height:1.6;}
+.req-rsn strong{color:var(--blue);display:block;font-size:.54rem;text-transform:uppercase;letter-spacing:2px;margin-bottom:3px;}
+.req-acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sp{font-family:var(--mono);font-size:.52rem;font-weight:700;padding:2px 7px;border-radius:2px;letter-spacing:1px;}
+.spa{background:rgba(0,255,157,.08);color:var(--ok);border:1px solid rgba(0,255,157,.25);}
+.spr{background:rgba(255,45,85,.08);color:var(--fail);border:1px solid rgba(255,45,85,.25);}
+
+/* ════════════════════════
+   MODAL
+   ════════════════════════ */
+.mo{
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(1,5,14,.88);backdrop-filter:blur(8px);
+  align-items:flex-start;justify-content:center;
+  padding:28px 16px;overflow-y:auto;
+}
+.mo.open{display:flex;}
+.modal{
+  background:rgba(2,11,24,.95);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  width:100%;max-width:1000px;
+  box-shadow:var(--shadow2),var(--glow);
+  animation:fadeUp .25s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;
+}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--blue) 30%,var(--cyan) 50%,var(--blue) 70%,transparent);}
+.moh{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
+.mot{font-family:var(--display);font-size:.88rem;font-weight:700;color:var(--text);letter-spacing:1px;text-transform:uppercase;}
+.mox{
+  background:transparent;border:1px solid var(--border2);
+  color:var(--muted);width:26px;height:26px;
+  border-radius:var(--radius);cursor:pointer;font-size:.7rem;
+  display:flex;align-items:center;justify-content:center;
+  transition:var(--transition);
+}
+.mox:hover{background:rgba(255,45,85,.08);color:var(--fail);border-color:rgba(255,45,85,.3);}
+.mob{padding:18px;}
+/* modal score */
+.mb-hp{display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+.mb-sc{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:10px;}
+.mb-sbc{background:rgba(0,0,0,.4);border:1px solid var(--border2);border-radius:var(--radius);padding:11px;text-align:center;}
+.mb-sbn{font-family:var(--display);font-size:1.2rem;font-weight:700;}
+.mb-sbl{font-family:var(--mono);font-size:.49rem;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-top:2px;}
+.mob-acts{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;}
+
+/* ── CONFIRM ── */
+.cfmb{display:none;position:fixed;inset:0;z-index:600;background:rgba(1,5,14,.9);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
+.cfmb.open{display:flex;}
+.cfmi{
+  background:rgba(2,11,24,.97);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:22px;max-width:320px;width:100%;
+  box-shadow:var(--shadow2);
+  position:relative;
+}
+.cfmi::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--fail),transparent);}
+.cfmt{font-family:var(--display);font-weight:700;font-size:.92rem;color:var(--text);margin-bottom:8px;letter-spacing:.5px;}
+.cfmm{font-family:var(--mono);font-size:.66rem;color:var(--text2);margin-bottom:14px;line-height:1.6;}
+.cfmbtns{display:flex;gap:7px;justify-content:flex-end;}
+
+/* ── DUP OVERLAY ── */
+.dup-ov{display:none;position:fixed;inset:0;z-index:600;background:rgba(1,5,14,.9);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;}
+.dup-ov.open{display:flex;}
+.dup-box{
+  background:rgba(2,11,24,.97);border:1px solid rgba(255,184,0,.25);
+  border-radius:var(--radius);max-width:500px;width:100%;
+  box-shadow:var(--shadow2),0 0 30px rgba(255,184,0,.08);
+}
+.dup-hdr{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);}
+.dup-wi{font-size:1.2rem;color:var(--warn);}
+.dup-ti{font-family:var(--display);font-weight:700;font-size:.88rem;color:var(--text);letter-spacing:.5px;}
+.dup-si{font-family:var(--mono);font-size:.58rem;color:var(--muted);margin-top:2px;}
+.dup-bdy{padding:14px 18px;}
+.dup-msg{font-family:var(--mono);font-size:.68rem;color:var(--text2);margin-bottom:11px;line-height:1.6;}
+.dup-det{background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:var(--radius);padding:11px;margin-bottom:11px;}
+.dup-dtt{font-family:var(--mono);font-size:.54rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:7px;}
+.dup-ind-row{display:grid;grid-template-columns:1fr 1fr;gap:5px;font-family:var(--mono);font-size:.65rem;}
+.dup-acts{display:flex;gap:7px;flex-wrap:wrap;}
+
+/* ── value cell in param view ── */
+.vc{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.72rem;}
+.dot{width:7px;height:7px;border-radius:50%;}
+.dok .dot{background:var(--ok);box-shadow:0 0 5px var(--ok);}
+.dwn .dot{background:var(--warn);box-shadow:0 0 5px var(--warn);}
+.dfl .dot{background:var(--fail);box-shadow:0 0 5px var(--fail);}
+
+/* record cards legacy (modal history) */
+.rc{background:rgba(2,14,28,.9);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;cursor:pointer;transition:var(--transition);}
+.rc:hover{border-color:var(--blue);}
+.rc::before{content:'';position:absolute;top:0;left:0;bottom:0;width:2px;border-radius:1px 0 0 1px;}
+.hg::before{background:var(--ok);box-shadow:0 0 6px var(--ok);}
+.hm::before{background:var(--warn);box-shadow:0 0 6px var(--warn);}
+.hb::before{background:var(--fail);box-shadow:0 0 6px var(--fail);}
+.rch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:5px;}
+.rcn{font-family:var(--display);font-weight:600;font-size:.8rem;color:var(--text);}
+.rcm{font-family:var(--mono);font-size:.55rem;color:var(--muted);margin-top:2px;}
+.rby{font-family:var(--mono);font-size:.52rem;color:var(--muted2);margin-top:2px;}
+.rst{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:5px 0;}
+.rs{text-align:center;padding:5px;background:rgba(0,0,0,.3);border-radius:var(--radius);}
+.rsn{font-family:var(--display);font-weight:700;font-size:.9rem;}
+.rsl{font-family:var(--mono);font-size:.45rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:1px;}
+.sokn{color:var(--ok);}
+.swnn{color:var(--warn);}
+.sfln{color:var(--fail);}
+.racts{display:flex;flex-wrap:wrap;gap:3px;margin-top:7px;padding-top:6px;border-top:1px solid var(--border);}
+.racts .btn{flex:1 1 auto;min-width:0;text-align:center;font-size:.52rem;padding:4px 6px;}
+
+/* ════════════════════════
+   MISC
+   ════════════════════════ */
+.hg{position:relative;}.hm{position:relative;}.hb{position:relative;}
+a{color:var(--blue);text-decoration:none;}
+a:hover{color:var(--cyan);text-decoration:none;}
+strong{font-weight:700;}
+h2{font-family:var(--display);}
+
+/* stat boxes admin */
+.sb5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px;}
+
+@media(max-width:900px){
+  .sb5{grid-template-columns:repeat(3,1fr);}
+  .dg3{grid-template-columns:1fr;}
+  .mg4{grid-template-columns:1fr 1fr;}
+  .req-dg{grid-template-columns:1fr 1fr;}
+  .sw-fields{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+  .sb5{grid-template-columns:1fr 1fr;}
+  .mg4{grid-template-columns:1fr;}
+  nav{padding:0 10px;}
+  .page{padding:12px 10px 40px;}
+  .ntabs{padding:0 6px;}
+  .ntab{padding:4px 8px;font-size:.6rem;}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader"><div class="spin"></div><div id="lmsg">Connecting...</div></div>
+
+<!-- SETUP WIZARD -->
+<div id="setup-screen">
+<div class="sw-wrap">
+  <div class="sw-top">
+    <div class="sw-hex"><svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.4L20.5 8.5v7L12 19.6 3.5 15.5v-7L12 4.4zM12 7a5 5 0 100 10A5 5 0 0012 7zm0 2a3 3 0 110 6 3 3 0 010-6z"/></svg></div>
+    <div class="sw-title">Tejas RRH Intelligence Platform</div>
+    <div class="sw-sub">One-time Cloud Database Setup · Supabase · Free Tier</div>
+  </div>
+  <!-- FILE:// WARNING BANNER -->
+  <div class="sw-steps">
+
+    <div class="sc">
+      <div class="sc-hdr"><div class="sc-num">1</div>
+        <div><div class="sc-title">Create a Free Supabase Account &amp; Project</div>
+        <div class="sc-desc">No credit card needed. Your data lives in the cloud — accessible from any browser, anywhere.</div></div>
+      </div>
+      <div class="sc-body">
+        <a href="https://supabase.com" target="_blank" class="sc-link">↗ Open supabase.com</a>
+        <div class="sw-note" style="margin-top:11px">
+          <strong>Steps:</strong><br>
+          1. Click <strong>Start for Free</strong> → Sign up with GitHub or email<br>
+          2. Click <strong>New Project</strong> → Name it anything (e.g. <em>tejas-rrh</em>)<br>
+          3. Set a database password → Choose region closest to India → Click <strong>Create new project</strong><br>
+          4. Wait ~2 minutes for the project to initialize
+        </div>
+      </div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-hdr"><div class="sc-num">2</div>
+        <div><div class="sc-title">Run the Database Setup SQL</div>
+        <div class="sc-desc">In your Supabase project → SQL Editor (left sidebar) → New Query → paste and Run</div></div>
+      </div>
+      <div class="sc-body">
+        <div class="sw-note" style="margin-bottom:11px">In Supabase dashboard → click <strong>SQL Editor</strong> in the left menu → click <strong>+ New query</strong> → paste the script below → click <strong>RUN</strong></div>
+        <div class="sql-wrap">
+          <button class="copy-btn" onclick="copySQL()">⬡ COPY SQL</button>
+          <pre class="sql" id="sql-block">-- ══════════════════════════════════════════════
+-- Tejas RRH Intelligence Platform · DB Setup
+-- Run this ONCE in Supabase SQL Editor
+-- ══════════════════════════════════════════════
+
+-- 1. USERS TABLE
+CREATE TABLE IF NOT EXISTS rrh_users (
+  id         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  username   TEXT UNIQUE NOT NULL,
+  password   TEXT NOT NULL,
+  name       TEXT NOT NULL,
+  empid      TEXT DEFAULT '',
+  dept       TEXT DEFAULT '',
+  desig      TEXT DEFAULT '',
+  role       TEXT DEFAULT 'user',
+  status     TEXT DEFAULT 'active',
+  ba_access  TEXT DEFAULT 'ALL',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. ACCESS REQUESTS TABLE
+CREATE TABLE IF NOT EXISTS rrh_requests (
+  id           uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  name         TEXT NOT NULL,
+  empid        TEXT NOT NULL,
+  dept         TEXT NOT NULL,
+  desig        TEXT NOT NULL,
+  username     TEXT NOT NULL,
+  password     TEXT NOT NULL,
+  reason       TEXT NOT NULL,
+  ba_access    TEXT DEFAULT 'ALL',
+  status       TEXT DEFAULT 'pending',
+  submitted_at TIMESTAMPTZ DEFAULT NOW(),
+  resolved_at  TIMESTAMPTZ
+);
+
+-- 3. RRH RECORDS TABLE
+CREATE TABLE IF NOT EXISTS rrh_records (
+  id          TEXT PRIMARY KEY,
+  enb_name    TEXT NOT NULL,
+  band        TEXT NOT NULL,
+  sector      TEXT NOT NULL,
+  report_dt   TEXT NOT NULL,
+  raw_data    JSONB NOT NULL DEFAULT '{}',
+  health_pct  INTEGER NOT NULL DEFAULT 0,
+  ok_count    INTEGER NOT NULL DEFAULT 0,
+  warn_count  INTEGER NOT NULL DEFAULT 0,
+  fail_count  INTEGER NOT NULL DEFAULT 0,
+  known_count INTEGER NOT NULL DEFAULT 0,
+  fail_items  JSONB NOT NULL DEFAULT '[]',
+  warn_items  JSONB NOT NULL DEFAULT '[]',
+  by_name     TEXT DEFAULT '',
+  by_username TEXT DEFAULT '',
+  ba          TEXT DEFAULT 'ALL',
+  history     JSONB NOT NULL DEFAULT '[]',
+  created_at  TIMESTAMPTZ DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. MIGRATION: add ba_access columns if upgrading existing database
+ALTER TABLE rrh_users    ADD COLUMN IF NOT EXISTS ba_access TEXT DEFAULT 'ALL';
+ALTER TABLE rrh_requests ADD COLUMN IF NOT EXISTS ba_access TEXT DEFAULT 'ALL';
+ALTER TABLE rrh_records  ADD COLUMN IF NOT EXISTS ba TEXT DEFAULT 'ALL';
+
+-- 5. DEFAULT ADMIN
+INSERT INTO rrh_users (username,password,name,empid,dept,desig,role,status)
+VALUES ('admin','admin123','Administrator','ADMIN-001','IT Operations','System Administrator','admin','active')
+ON CONFLICT (username) DO NOTHING;
+
+-- 6. ROW LEVEL SECURITY (allow anon key full access)
+ALTER TABLE rrh_users    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rrh_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rrh_records  ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "app_access" ON rrh_users;
+DROP POLICY IF EXISTS "app_access" ON rrh_requests;
+DROP POLICY IF EXISTS "app_access" ON rrh_records;
+
+CREATE POLICY "app_access" ON rrh_users    FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "app_access" ON rrh_requests FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "app_access" ON rrh_records  FOR ALL TO anon USING (true) WITH CHECK (true);</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-hdr"><div class="sc-num">3</div>
+        <div><div class="sc-title">Host This File on Netlify (Free · 30 seconds)</div>
+        <div class="sc-desc">Required: browsers block network requests from local files. Netlify gives you a live https:// URL instantly.</div></div>
+      </div>
+      <div class="sc-body">
+        <a href="https://app.netlify.com/drop" target="_blank" class="netlify-btn" style="text-decoration:none;display:inline-flex">↗ Open Netlify Drop</a>
+        <div class="sw-note" style="margin-top:12px">
+          <strong>Steps (takes ~30 seconds, completely free):</strong><br>
+          1. Click the button above to open <strong>app.netlify.com/drop</strong><br>
+          2. Drag and drop this <strong>tejas_rrh_platform.html</strong> file onto the page<br>
+          3. Netlify instantly gives you a live URL like <em>https://random-name.netlify.app</em><br>
+          4. <strong>Open that URL in your browser</strong> — the setup wizard will reappear<br>
+          5. Continue with Step 4 below from that live URL<br><br>
+          ℹ You can also use <strong>GitHub Pages</strong> or <strong>Vercel</strong> — any https:// host works.
+        </div>
+      </div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-hdr"><div class="sc-num">4</div>
+        <div><div class="sc-title">Enter Your Supabase Credentials</div>
+        <div class="sc-desc">Supabase Dashboard → Settings (bottom left) → API → copy Project URL and anon/public key</div></div>
+      </div>
+      <div class="sc-body">
+        <div class="sw-note" style="margin-bottom:13px">
+          In Supabase → click <strong>⚙ Project Settings</strong> (bottom of left sidebar) → click <strong>API</strong> →<br>
+          Copy <strong>Project URL</strong> (e.g. <em>https://abcxyz.supabase.co</em>)<br>
+          Copy <strong>anon / public</strong> key (long string starting with <em>eyJ…</em>, ~200 characters)<br><br>
+          ⚠ <strong>Free tier note:</strong> Supabase pauses free projects after 1 week of no activity.<br>
+          If your project is paused, go to <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--info);font-weight:700">supabase.com/dashboard</a> → open your project → click <strong>Restore project</strong> first.
+        </div>
+        <div class="sw-fields">
+          <div class="sw-field"><label>Supabase Project URL</label><input class="sw-inp" id="sb-url" type="text" placeholder="https://xxxxxxxxxxxx.supabase.co"/></div>
+          <div class="sw-field"><label>Supabase Anon / Public Key</label><input class="sw-inp" id="sb-key" type="text" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."/></div>
+        </div>
+        <button class="sw-btn" onclick="testAndSave()">⬡ TEST CONNECTION &amp; LAUNCH</button>
+        <div class="sw-err" id="sw-err"></div>
+        <div class="sw-ok" id="sw-ok"></div>
+      </div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-hdr"><div class="sc-num">5</div>
+        <div><div class="sc-title">Allow Your Site in Supabase CORS Settings</div>
+        <div class="sc-desc">Required for Firefox, Edge, Safari — Chrome is lenient but other browsers enforce CORS strictly.</div></div>
+      </div>
+      <div class="sc-body">
+        <div class="sw-note" style="border-left-color:var(--warn);margin-bottom:0">
+          <strong style="color:var(--warn)">⚠ Do this or Firefox/Edge/Safari users will see a connection error.</strong><br><br>
+          1. Go to <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--info);font-weight:700">supabase.com/dashboard</a> → open your project<br>
+          2. Click <strong>Project Settings</strong> (bottom left gear icon) → click <strong>API</strong><br>
+          3. Scroll down to <strong>CORS Allowed Origins</strong><br>
+          4. Click <strong>Add origin</strong> → paste your Netlify URL (e.g. <code style="color:var(--ok)">https://guileless-phoenix-cb9ae8.netlify.app</code>)<br>
+          5. Also add <code style="color:var(--ok)">*</code> if you want to allow all origins (easier for testing)<br>
+          6. Click <strong>Save</strong><br><br>
+          <span id="sw-origin-lbl">ℹ Your exact Netlify URL is: </span><span id="sw-origin" style="color:var(--ok);font-size:.72rem"></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+<div class="lw">
+  <div class="lb">
+    <div class="lt">
+      <div class="lhex"><svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.4L20.5 8.5v7L12 19.6 3.5 15.5v-7L12 4.4zM12 7a5 5 0 100 10A5 5 0 0012 7zm0 2a3 3 0 110 6 3 3 0 010-6z"/></svg></div>
+      <div class="ltitle">Tejas RRH Intelligence</div>
+      <div class="lsub">eNodeB Health Monitoring Platform</div>
+    </div>
+    <div class="atabs">
+      <button class="atab active" onclick="swTab('signin')">Sign In</button>
+      <button class="atab" onclick="swTab('request')">Request Access</button>
+    </div>
+    <!-- SIGN IN -->
+    <div class="apnl active" id="panel-signin">
+      <div class="aerr" id="lerr"></div>
+      <div class="fg"><label>Username</label><input class="fi" id="l-user" type="text" placeholder="Enter username" autocomplete="username"/></div>
+      <div class="fg"><label>Password</label><input class="fi" id="l-pass" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <button class="abtn" onclick="doLogin()">Sign In</button>
+      <div style="margin-top:10px;font-size:0.6rem;color:var(--muted2);text-align:center">Default admin: <span style="color:var(--blue)">admin</span> / <span style="color:var(--blue)">admin123</span></div>
+    </div>
+    <!-- REQUEST ACCESS -->
+    <div class="apnl" id="panel-request">
+      <div class="aerr" id="rerr"></div>
+      <div class="aok" id="rok"></div>
+      <div class="fr2">
+        <div class="fg"><label>Full Name *</label><input class="fi" id="r-name" type="text" placeholder="Your full name"/></div>
+        <div class="fg"><label>Employee ID *</label><input class="fi" id="r-empid" type="text" placeholder="e.g. TN-2048"/></div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label>Department *</label><input class="fi" id="r-dept" type="text" placeholder="e.g. RF Operations"/></div>
+        <div class="fg"><label>Designation *</label><input class="fi" id="r-desig" type="text" placeholder="e.g. RAN Engineer"/></div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label>Username *</label><input class="fi" id="r-user" type="text" placeholder="Choose a username"/></div>
+        <div class="fg"><label>Password *</label><input class="fi" id="r-pass" type="password" placeholder="Choose a password"/></div>
+      </div>
+      <div class="fg"><label>BA Name (Business Area) *</label>
+        <select class="fi" id="r-ba" style="color:var(--text2)">
+            <option value="">-- Select BA --</option>
+            <option value="Balasore">Balasore</option>
+            <option value="Bhadrak">Bhadrak</option>
+            <option value="Baripada">Baripada</option>
+            <option value="Cuttack">Cuttack</option>
+            <option value="Bhubaneswar">Bhubaneswar</option>
+            <option value="Puri">Puri</option>
+            <option value="Berhampur">Berhampur</option>
+            <option value="Sambalpur">Sambalpur</option>
+            <option value="Rourkela">Rourkela</option>
+            <option value="Jharsuguda">Jharsuguda</option>
+            <option value="Koraput">Koraput</option>
+            <option value="Rayagada">Rayagada</option>
+          </select>
+      </div>
+      <div class="fg"><label>Reason for Access *</label><textarea class="fi" id="r-reason" style="min-height:70px;resize:none" placeholder="Briefly describe your role and why you need access"></textarea></div>
+      <button class="abtn abtn-w" onclick="doRegister()">Submit Access Request</button>
+      <div class="pend-notice" id="req-pending" style="display:none">
+        <strong>⚠ Request Submitted</strong> — Waiting for admin approval. You can sign in only after your account is approved.
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- DUPLICATE WARNING -->
+<div class="dup-ov" id="dup-ov">
+<div class="dup-box">
+  <div class="dup-hdr"><div class="dup-wi">⚠</div>
+    <div><div class="dup-ti">EXISTING RECORD FOUND</div><div class="dup-si">This eNodeB · Band · Sector already has a saved record</div></div>
+  </div>
+  <div class="dup-bdy">
+    <div class="dup-msg">Record exists for <strong id="dup-id-txt"></strong>.<br>Proceeding will <strong>update</strong> this record and archive current data to history.<br>Click <strong>Cancel</strong> to review the existing record first.</div>
+    <div class="dup-det"><div class="dup-dtt">Existing Record Details</div><div id="dup-det-rows"></div></div>
+    <div class="dup-acts">
+      <button class="btn bg2 bsm" onclick="closeDup()">Cancel</button>
+      <button class="btn bw bsm" onclick="proceedUpdate()">Update Record</button>
+      <button class="btn bo bsm" onclick="viewExFromDup()">View Existing</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+<!-- TOP NAV -->
+<nav>
+  <div class="nbrand">
+    <div class="nhex"><svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.4L20.5 8.5v7L12 19.6 3.5 15.5v-7L12 4.4zM12 7a5 5 0 100 10A5 5 0 0012 7zm0 2a3 3 0 110 6 3 3 0 010-6z"/></svg></div>
+    <div><div class="ntitle">Tejas RRH Intelligence</div><div class="nsub">eNodeB Health · Cloud · Live</div></div>
+  </div>
+  <div class="ntabs">
+    <button class="ntab" id="tab-analyze" onclick="showPage('analyze')">
+      <svg viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Analyze
+    </button>
+    <button class="ntab active" id="tab-records" onclick="showPage('records')">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+      Records
+    </button>
+    <button class="ntab" id="tab-dashboard" onclick="showPage('dashboard')">
+      <svg viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Dashboard
+    </button>
+    <button class="ntab" id="tab-admin" style="display:none" onclick="showPage('admin')">
+      <svg viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Admin <span class="pbdg" id="pbdg"></span>
+    </button>
+  </div>
+  <div class="nright">
+    <div class="ncount">Records: <span id="rec-count">0</span></div>
+    <button class="nbtn nbtn-sync" onclick="refreshAll()">⟳ Sync</button>
+    <div class="nuser">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--blue-dim);border:1px solid var(--blue-glow);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--blue);font-weight:800;" id="nav-avatar">?</div>
+      <span class="nuname" id="nav-uname"></span>
+      <span class="rp" id="nav-role"></span>
+    </div>
+    <button class="nbtn nbtn-out" onclick="doLogout()">Sign Out</button>
+  </div>
+</nav>
+
+<div class="app-body">
+
+<!-- ANALYZE PAGE -->
+<div class="page" id="page-analyze">
+  <div class="ph">
+    <div class="ph-left">
+      <div class="ph-title">Analyze Report</div>
+      <div class="ph-sub">Paste RRH output · Validate parameters · Save to cloud</div>
+    </div>
+    <div class="ph-actions">
+      <button class="btn bo" id="btn-export" style="display:none" onclick="exportCurrentCSV()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Export
+      </button>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="sh"><h2>Report Input</h2><div class="stag">Paste · Validate · Save</div></div>
+    <div class="mg4" style="grid-template-columns:repeat(5,1fr)">
+      <div class="fld"><label>eNodeB Name *</label><input type="text" id="inp-name" placeholder="e.g. OD_BALS_SECTOR_01" oninput="liveCheck();validateAnalyzeFields()"/></div>
+      <div class="fld"><label>BA Name *</label>
+        <select id="inp-ba" onchange="liveCheck();validateAnalyzeFields()" style="color:var(--cyan)">
+          <option value="">-- Select BA --</option>
+          <option value="Balasore">Balasore</option>
+          <option value="Bhadrak">Bhadrak</option>
+          <option value="Baripada">Baripada</option>
+          <option value="Cuttack">Cuttack</option>
+          <option value="Bhubaneswar">Bhubaneswar</option>
+          <option value="Puri">Puri</option>
+          <option value="Berhampur">Berhampur</option>
+          <option value="Sambalpur">Sambalpur</option>
+          <option value="Rourkela">Rourkela</option>
+          <option value="Jharsuguda">Jharsuguda</option>
+          <option value="Koraput">Koraput</option>
+          <option value="Rayagada">Rayagada</option>
+        </select>
+      </div>
+      <div class="fld"><label>Band *</label>
+        <select id="inp-band" onchange="liveCheck();validateAnalyzeFields()">
+          <option value="B1">Band 1 — 2100 MHz FDD</option>
+          <option value="B28">Band 28 — 700 MHz FDD</option>
+          <option value="B41">Band 41 — 2300 MHz TDD</option>
+        </select>
+      </div>
+      <div class="fld"><label>Sector *</label>
+        <select id="inp-sector" onchange="liveCheck();validateAnalyzeFields()">
+          <option value="1">Sector 1</option><option value="2">Sector 2</option><option value="3">Sector 3</option>
+        </select>
+      </div>
+      <div class="fld"><label>Report Date / Time</label><input type="text" id="inp-dt" placeholder="auto-filled if blank"/></div>
+    </div>
+    <div id="dup-ind" style="display:none;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:9px;padding:10px 14px;background:var(--warn-dim);border:1px solid rgba(245,158,11,.2);border-left:3px solid var(--warn);border-radius:var(--radius)">
+        <span style="font-size:.9rem">⚠</span>
+        <div style="flex:1"><div style="font-family:var(--sans);font-size:.62rem;font-weight:800;color:var(--warn);letter-spacing:2px">RECORD ALREADY EXISTS IN CLOUD</div>
+        <div style="font-size:.62rem;color:var(--text2);margin-top:2px;line-height:1.6" id="dup-ind-txt"></div></div>
+        <button class="btn bw bsm" onclick="viewExFromInd()">View</button>
+      </div>
+    </div>
+    <textarea id="paste-area" oninput="validateAnalyzeFields()" placeholder="Paste RRH report output here...
+mErrored              =  0
+tx_status0            =  1
+tx_power0             =  39.400002
+VSWR_0                =  1.220000
+..."></textarea>
+    <div class="br">
+      <button class="btn bp" onclick="runAnalysis()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Analyze &amp; Save to Cloud
+      </button>
+      <button class="btn bg2" onclick="clearInput()">Clear</button>
+    </div>
+  </div>
+  <div id="results" style="display:none">
+    <div class="eb" id="enb-bar"></div>
+    <div class="sb5" id="scoreboard"></div>
+    <div class="abn" id="alert-banner"><div class="abn-t">⚠ Parameters Requiring Attention</div><div class="chips" id="alert-chips"></div></div>
+    <div id="tables-area"></div>
+  </div>
+</div>
+
+<!-- RECORDS PAGE -->
+<div class="page active" id="page-records">
+  <div id="vo-bar" style="display:none">
+    <div class="vo-ban"><div class="vo-ico">🔍</div>
+    <div>You are in <strong>View-Only Mode</strong>. You can browse records, view details and export. Contact admin for full access.</div></div>
+  </div>
+  <div class="ph">
+    <div class="ph-left">
+      <div class="ph-title">RRH Records</div>
+      <div class="ph-sub" id="rec-sub">Loading records...</div>
+    </div>
+    <div class="ph-actions">
+      <span id="admin-only-btns">
+        <button class="btn bd bsm" onclick="confirmDeleteAll()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          Delete All
+        </button>
+      </span>
+      <button class="btn bo bsm" onclick="exportAllCSV()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Export All
+      </button>
+    </div>
+  </div>
+  <div class="rtb">
+    <input type="text" class="sbx" id="srch" placeholder="Search eNodeB name..." oninput="renderRecords()"/>
+    <select class="fsl" id="fb" onchange="renderRecords()"><option value="">All Bands</option><option value="B1">Band 1</option><option value="B28">Band 28</option><option value="B41">Band 41</option></select>
+    <select class="fsl" id="fh" onchange="renderRecords()"><option value="">All Health</option><option value="good">Good ≥85%</option><option value="med">Warning 60–84%</option><option value="bad">Critical &lt;60%</option></select>
+    <select class="fsl" id="fo" onchange="renderRecords()"><option value="">All Engineers</option></select>
+  </div>
+  <div id="records-grid"></div>
+</div>
+
+<!-- DASHBOARD PAGE -->
+<div class="page" id="page-dashboard">
+  <div class="ph">
+    <div class="ph-left"><div class="ph-title">Fleet Dashboard</div><div class="ph-sub">Network-wide health overview</div></div>
+  </div>
+  <div id="dash-content"></div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div class="page" id="page-admin">
+  <div class="ph">
+    <div class="ph-left"><div class="ph-title">Administration</div><div class="ph-sub">Users · Access Requests · Config</div></div>
+  </div>
+  <div class="atabs2">
+    <button class="atab2 active" onclick="swAdmTab('requests')">Access Requests <span class="pbdg" id="req-cnt-badge" style="display:none"></span></button>
+    <button class="atab2" onclick="swAdmTab('users')">All Users</button>
+    <button class="atab2" onclick="swAdmTab('stats')">System Stats</button>
+    <button class="atab2" onclick="swAdmTab('config')">DB Config</button>
+  </div>
+  <div class="admpl active" id="adm-requests"><div id="req-list"></div></div>
+  <div class="admpl" id="adm-users"><div id="user-list"></div></div>
+  <div class="admpl" id="adm-stats"><div id="stats-content"></div></div>
+  <div class="admpl" id="adm-config"><div id="cfg-content"></div></div>
+</div>
+
+</div><!-- app-body -->
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div class="mo" id="mo" onclick="closeMoEv(event)">
+  <div class="modal"><div class="moh"><div class="mot" id="mot"></div><button class="mox" onclick="closeMo()">✕</button></div><div class="mob" id="mob"></div></div>
+</div>
+<!-- CONFIRM -->
+<div class="cfmb" id="cfmb">
+  <div class="cfmi"><div class="cfmt" id="cfmt">Confirm</div><div class="cfmm" id="cfmm"></div>
+  <div class="cfmbtns"><button class="btn bg2 bsm" onclick="closeCfm()">Cancel</button><button class="btn bd bsm" id="cfmok">Confirm</button></div></div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// SUPABASE CONFIG
+// Admin: run the setup wizard once, download the configured file,
+// then re-upload to Netlify. All users will skip setup automatically.
+// ═══════════════════════════════════════════════════════════════
+const SUPABASE_URL = '';  // ← auto-filled by setup wizard
+const SUPABASE_KEY = '';  // ← auto-filled by setup wizard
+// ═══════════════════════════════════════════════════════════════
+const CFG_URL='tejas_sb_url', CFG_KEY='tejas_sb_key', SES_KEY='tejas_ses_v5';
+let _pendingUrl='', _pendingKey=''; // set after successful test, used by downloadConfigured()
+const SB={
+  url: SUPABASE_URL || localStorage.getItem(CFG_URL)||'',
+  key: SUPABASE_KEY || localStorage.getItem(CFG_KEY)||'',
+  ready(){return !!(this.url&&this.key);},
+  hdr(){return{'Content-Type':'application/json','apikey':this.key,'Authorization':'Bearer '+this.key,'Prefer':'return=representation'};},
+  async get(t,q=''){const r=await fetch(this.url+'/rest/v1/'+t+(q?'?'+q:''),{headers:this.hdr(),mode:'cors'});if(!r.ok)throw new Error(await r.text());return r.json();},
+  async post(t,d){const r=await fetch(this.url+'/rest/v1/'+t,{method:'POST',headers:this.hdr(),body:JSON.stringify(d),mode:'cors'});if(!r.ok)throw new Error(await r.text());const x=await r.text();return x?JSON.parse(x):null;},
+  async patch(t,q,d){const r=await fetch(this.url+'/rest/v1/'+t+'?'+q,{method:'PATCH',headers:this.hdr(),body:JSON.stringify(d),mode:'cors'});if(!r.ok)throw new Error(await r.text());const x=await r.text();return x?JSON.parse(x):null;},
+  async del(t,q){const r=await fetch(this.url+'/rest/v1/'+t+'?'+q,{method:'DELETE',headers:this.hdr(),mode:'cors'});if(!r.ok)throw new Error(await r.text());return true;},
+  async upsert(t,d){const h={...this.hdr(),'Prefer':'resolution=merge-duplicates,return=representation'};const r=await fetch(this.url+'/rest/v1/'+t,{method:'POST',headers:h,body:JSON.stringify(d),mode:'cors'});if(!r.ok)throw new Error(await r.text());const x=await r.text();return x?JSON.parse(x):null;}
+};
+// Local cache
+const C={records:[],users:[],requests:[]};
+let CU=null;
+
+// ═══════════════════════════════════════
+// LOADER
+// ═══════════════════════════════════════
+function showLoader(m='Loading...'){document.getElementById('lmsg').textContent=m;document.getElementById('loader').classList.add('show');}
+function hideLoader(){document.getElementById('loader').classList.remove('show');}
+
+// ═══════════════════════════════════════
+// PARAM DEFINITIONS
+// ═══════════════════════════════════════
+const PD={
+  mErrored:{l:'Module Errors',g:'Module Status',u:'',ok:[0,0],w:null,f:'int',d:'Must be 0; non-zero = HW/SW fault'},
+  tx_status0:{l:'TX Status (Ant 0)',g:'TX Chain',u:'',ok:[1,1],w:null,f:'bool',d:'1=Active, 0=Fault'},
+  tx_status1:{l:'TX Status (Ant 1)',g:'TX Chain',u:'',ok:[1,1],w:null,f:'bool',d:'1=Active, 0=Fault'},
+  tx_power0:{l:'TX Power (Ant 0)',g:'TX Chain',u:'dBm',ok:[38,46],w:[36,47],f:'float',d:'Nominal TX output power per port'},
+  tx_power1:{l:'TX Power (Ant 1)',g:'TX Chain',u:'dBm',ok:[38,46],w:[36,47],f:'float',d:'Nominal TX output power per port'},
+  tx_dcOfsl0:{l:'TX DC Offset (Ant 0)',g:'TX Chain',u:'',ok:[0,0],w:null,f:'int',d:'Must be 0'},
+  tx_dcOfsl1:{l:'TX DC Offset (Ant 1)',g:'TX Chain',u:'',ok:[0,0],w:null,f:'int',d:'Must be 0'},
+  tx_q0:{l:'TX Q Error (Ant 0)',g:'TX Chain',u:'',ok:[0,0],w:null,f:'int',d:'Quadrature error must be 0'},
+  tx_q1:{l:'TX Q Error (Ant 1)',g:'TX Chain',u:'',ok:[0,0],w:null,f:'int',d:'Quadrature error must be 0'},
+  tx_IQImb0:{l:'TX IQ Imbalance (Ant 0)',g:'TX Chain',u:'dB',ok:[-1,1],w:[-2,2],f:'float',d:'IQ amplitude imbalance; ideally 0'},
+  tx_IQImb1:{l:'TX IQ Imbalance (Ant 1)',g:'TX Chain',u:'dB',ok:[-1,1],w:[-2,2],f:'float',d:'IQ amplitude imbalance; ideally 0'},
+  tx_angle0:{l:'TX Phase Angle (Ant 0)',g:'TX Chain',u:'°',ok:[-2,2],w:[-5,5],f:'float',d:'I/Q phase error'},
+  tx_angle1:{l:'TX Phase Angle (Ant 1)',g:'TX Chain',u:'°',ok:[-2,2],w:[-5,5],f:'float',d:'I/Q phase error'},
+  tx_aclr0P1:{l:'ACLR +1 (Ant 0)',g:'TX Chain',u:'dBc',ok:[0,5],w:[5,8],f:'float',d:'Adjacent channel leakage; >8 causes interference'},
+  tx_aclr0P2:{l:'ACLR +2 (Ant 0)',g:'TX Chain',u:'dBc',ok:[0,5],w:[5,8],f:'float',d:'ACLR at +2 offset'},
+  tx_aclr1P1:{l:'ACLR +1 (Ant 1)',g:'TX Chain',u:'dBc',ok:[0,5],w:[5,8],f:'float',d:'Adjacent channel leakage'},
+  tx_aclr1P2:{l:'ACLR +2 (Ant 1)',g:'TX Chain',u:'dBc',ok:[0,5],w:[5,8],f:'float',d:'ACLR at +2 offset'},
+  VSWR_0:{l:'VSWR (Ant 0)',g:'VSWR',u:'',ok:[1.0,1.5],w:[1.5,2.0],f:'float',d:'1.0=ideal; >2.0=poor match; >3.0=critical'},
+  VSWR_1:{l:'VSWR (Ant 1)',g:'VSWR',u:'',ok:[1.0,1.5],w:[1.5,2.0],f:'float',d:'Check feeder, connectors and antenna for high VSWR'},
+  rx_status0:{l:'RX Status (Ant 0)',g:'RX Chain',u:'',ok:[1,1],w:null,f:'bool',d:'1=Active'},
+  rx_status1:{l:'RX Status (Ant 1)',g:'RX Chain',u:'',ok:[1,1],w:null,f:'bool',d:'1=Active'},
+  rx_power0:{l:'RX Power (Ant 0)',g:'RX Chain',u:'dBm',ok:[-100,-70],w:[-110,-60],f:'float',d:'Too low=path loss; too high=interference'},
+  rx_power1:{l:'RX Power (Ant 1)',g:'RX Chain',u:'dBm',ok:[-100,-70],w:[-110,-60],f:'float',d:'Received signal power at RRH input'},
+  rx_dcOfsl0:{l:'RX DC Offset (Ant 0)',g:'RX Chain',u:'',ok:[0,0],w:null,f:'int',d:'Must be 0'},
+  rx_dcOfsl1:{l:'RX DC Offset (Ant 1)',g:'RX Chain',u:'',ok:[0,0],w:null,f:'int',d:'Must be 0'},
+  rx_IQImb0:{l:'RX IQ Imbalance (Ant 0)',g:'RX Chain',u:'dB',ok:[-1,1],w:[-2,2],f:'float',d:'IQ imbalance in receiver'},
+  rx_IQImb1:{l:'RX IQ Imbalance (Ant 1)',g:'RX Chain',u:'dB',ok:[-1,1],w:[-2,2],f:'float',d:'IQ imbalance in receiver'},
+  rx_angle0:{l:'RX Phase Angle (Ant 0)',g:'RX Chain',u:'°',ok:[-2,2],w:[-5,5],f:'float',d:'Phase error in receiver'},
+  rx_angle1:{l:'RX Phase Angle (Ant 1)',g:'RX Chain',u:'°',ok:[-2,2],w:[-5,5],f:'float',d:'Phase error in receiver'},
+  pa_temp0:{l:'PA Temperature (Ant 0)',g:'PA Health',u:'°C',ok:[0,55],w:[55,70],f:'float',d:'PA junction temp; >70°C triggers protection'},
+  pa_temp1:{l:'PA Temperature (Ant 1)',g:'PA Health',u:'°C',ok:[0,55],w:[55,70],f:'float',d:'PA junction temperature'},
+  pa_volt0:{l:'PA Voltage (Ant 0)',g:'PA Health',u:'V',ok:[28,32],w:[26,34],f:'float',d:'PA supply voltage; nominal ~30V'},
+  pa_volt1:{l:'PA Voltage (Ant 1)',g:'PA Health',u:'V',ok:[28,32],w:[26,34],f:'float',d:'PA supply voltage; nominal ~30V'},
+  pa0_current:{l:'PA Current (Ant 0)',g:'PA Health',u:'A',ok:[0.8,2.0],w:[0.5,2.5],f:'float',d:'PA drain current; abnormal = PA fault'},
+  pa1_current:{l:'PA Current (Ant 1)',g:'PA Health',u:'A',ok:[0.8,2.0],w:[0.5,2.5],f:'float',d:'PA drain current'},
+  pa_power0:{l:'PA Output Power (Ant 0)',g:'PA Health',u:'dBm',ok:[30,46],w:[28,47],f:'float',d:'Power at PA output stage'},
+  pa_power1:{l:'PA Output Power (Ant 1)',g:'PA Health',u:'dBm',ok:[30,46],w:[28,47],f:'float',d:'Power at PA output stage'},
+  rrh_temp_status:{l:'RRH Enclosure Temp',g:'RRH Environment',u:'°C',ok:[0,55],w:[55,70],f:'float',d:'Ambient RRH enclosure temperature'},
+  ps_temp:{l:'PSU Temperature',g:'RRH Environment',u:'°C',ok:[0,55],w:[55,70],f:'float',d:'Power supply unit temperature'},
+  rfic_temp:{l:'RFIC Temperature',g:'RRH Environment',u:'°C',ok:[0,65],w:[65,85],f:'float',d:'RF IC operating temperature'},
+  soc_temp:{l:'SoC Temperature',g:'RRH Environment',u:'°C',ok:[0,70],w:[70,90],f:'float',d:'System-on-Chip temperature'},
+  xadc_zync_temp:{l:'Zynq XADC Temp',g:'RRH Environment',u:'°C',ok:[0,85],w:[85,100],f:'float',d:'Zynq internal temperature sensor'},
+  psu_volt:{l:'PSU Voltage',g:'RRH Environment',u:'V',ok:[48,54],w:[46,56],f:'float',d:'Main power rail; nominal 48–50V'},
+  ps_current:{l:'PSU Current',g:'RRH Environment',u:'A',ok:[0,30],w:null,f:'float',d:'Total power supply current draw'},
+  cpriport0_status:{l:'CPRI Port 0 Status',g:'CPRI Link 0',u:'',ok:['slave'],w:null,f:'str',d:'Should be "slave" when connected to BBU'},
+  LOSS0:{l:'CPRI Loss (Port 0)',g:'CPRI Link 0',u:'',ok:[0,0],w:null,f:'int',d:'Loss of Signal — must be 0'},
+  LOFS0:{l:'CPRI LOF (Port 0)',g:'CPRI Link 0',u:'',ok:[0,0],w:null,f:'int',d:'Loss of Frame Sync — must be 0'},
+  sfp_tx_power0:{l:'SFP TX Power (Port 0)',g:'CPRI Link 0',u:'dBm',ok:[-4,0],w:[-6,1],f:'float',d:'SFP transmit power; <-6 dBm = degraded optic'},
+  sfp_rx_power0:{l:'SFP RX Power (Port 0)',g:'CPRI Link 0',u:'dBm',ok:[-14,-1],w:[-17,0],f:'float',d:'SFP receive power; <-17 dBm = fiber path loss'},
+  sfp_volt0:{l:'SFP Voltage (Port 0)',g:'CPRI Link 0',u:'V',ok:[3.1,3.5],w:[3.0,3.6],f:'float',d:'SFP supply voltage; nominal 3.3V'},
+  sfp_curr0:{l:'SFP Current (Port 0)',g:'CPRI Link 0',u:'mA',ok:[20,80],w:[10,100],f:'float',d:'SFP laser bias current'},
+  sfp_active0:{l:'SFP Active (Port 0)',g:'CPRI Link 0',u:'',ok:[1,1],w:null,f:'bool',d:'1=SFP present and active'},
+  sfp0_temp:{l:'SFP Temp (Port 0)',g:'CPRI Link 0',u:'°C',ok:[0,70],w:[70,85],f:'float',d:'SFP transceiver temperature'},
+  cpriport1_status:{l:'CPRI Port 1 Status',g:'CPRI Link 1',u:'',ok:['slave'],w:null,f:'str',d:'Should be "slave"'},
+  LOSS1:{l:'CPRI Loss (Port 1)',g:'CPRI Link 1',u:'',ok:[0,0],w:null,f:'int',d:'Loss of Signal — must be 0'},
+  LOFS1:{l:'CPRI LOF (Port 1)',g:'CPRI Link 1',u:'',ok:[0,0],w:null,f:'int',d:'Loss of Frame Sync — must be 0'},
+  sfp_tx_power1:{l:'SFP TX Power (Port 1)',g:'CPRI Link 1',u:'dBm',ok:[-4,0],w:[-6,1],f:'float',d:'SFP transmit power'},
+  sfp_rx_power1:{l:'SFP RX Power (Port 1)',g:'CPRI Link 1',u:'dBm',ok:[-14,-1],w:[-17,0],f:'float',d:'SFP receive power'},
+  sfp_volt1:{l:'SFP Voltage (Port 1)',g:'CPRI Link 1',u:'V',ok:[3.1,3.5],w:[3.0,3.6],f:'float',d:'SFP supply voltage'},
+  sfp_curr1:{l:'SFP Current (Port 1)',g:'CPRI Link 1',u:'mA',ok:[20,80],w:[10,100],f:'float',d:'SFP laser bias current'},
+  sfp_active1:{l:'SFP Active (Port 1)',g:'CPRI Link 1',u:'',ok:[1,1],w:null,f:'bool',d:'1=SFP present and active'},
+  sfp1_temp:{l:'SFP Temp (Port 1)',g:'CPRI Link 1',u:'°C',ok:[0,70],w:[70,85],f:'float',d:'SFP transceiver temperature'}
+};
+const GROUPS=['Module Status','TX Chain','VSWR','RX Chain','PA Health','RRH Environment','CPRI Link 0','CPRI Link 1'];
+const GICO={'Module Status':'⬡','TX Chain':'▶','VSWR':'◈','RX Chain':'◀','PA Health':'⬢','RRH Environment':'⊕','CPRI Link 0':'⊞','CPRI Link 1':'⊟'};
+
+// ═══════════════════════════════════════
+// LOAD DATA FROM SUPABASE
+// ═══════════════════════════════════════
+async function loadAll(){
+  const [recs,users,reqs]=await Promise.all([
+    SB.get('rrh_records','order=updated_at.desc'),
+    SB.get('rrh_users','order=created_at.asc'),
+    SB.get('rrh_requests','order=submitted_at.desc')
+  ]);
+  C.records=recs||[]; C.users=users||[]; C.requests=reqs||[];
+  document.getElementById('rec-count').textContent=C.records.length;
+}
+
+async function refreshAll(){
+  showLoader('Syncing from cloud...');
+  try{
+    await loadAll();
+    toast('Cloud sync complete ✓');
+    const pg=document.querySelector('.page.active')?.id?.replace('page-','');
+    if(pg==='analyze'){
+      // Auto-fill BA from user profile, lock if non-admin
+      const baEl=document.getElementById('inp-ba');
+      if(baEl&&CU&&CU.ba_access&&CU.ba_access!=='ALL'){
+        baEl.value=CU.ba_access;
+        baEl.disabled=true;
+        baEl.title='BA locked to your profile: '+CU.ba_access;
+        baEl.style.opacity='.7';
+        baEl.style.cursor='not-allowed';
+      }else if(baEl){
+        baEl.disabled=false;
+        baEl.style.opacity='1';
+        baEl.style.cursor='pointer';
+      }
+      // Re-check duplicate indicator with fresh data — clears stale "already exists" warning
+      liveCheck();
+    }
+    if(pg==='records')renderRecords();
+    if(pg==='dashboard')renderDashboard();
+    if(pg==='admin'){const t=document.querySelector('.atab2.active');if(t)swAdmTab(t.getAttribute('onclick').match(/'([^']+)'/)?.[1]||'requests');}
+  }catch(e){toast('Sync failed: '+e.message,'','terr');}
+  finally{hideLoader();}
+}
+
+
+// ═══════════════════════════════════════
+// SETUP WIZARD
+// ═══════════════════════════════════════
+function copySQL(){
+  const t=document.getElementById('sql-block').textContent;
+  navigator.clipboard.writeText(t).then(()=>toast('SQL copied to clipboard ✓')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('SQL copied ✓');
+  });
+}
+
+async function testAndSave(){
+  const err=document.getElementById('sw-err'),ok=document.getElementById('sw-ok');
+  err.classList.remove('show');ok.classList.remove('show');
+
+  // ── Check 1: file:// protocol
+  if(location.protocol==='file:'){
+    err.innerHTML='🚫 <strong>Opened as local file.</strong> Upload to Netlify first — see Step 3 above.';
+    err.classList.add('show');
+    document.getElementById('file-warn').classList.add('show');
+    return;
+  }
+
+  // ── Check 2: inputs present
+  const rawUrl=document.getElementById('sb-url').value.trim();
+  const key=document.getElementById('sb-key').value.trim();
+  if(!rawUrl||!key){
+    err.textContent='Please enter both the Project URL and anon key.';
+    err.classList.add('show');return;
+  }
+
+  // ── Check 3: clean up URL
+  let url=rawUrl.replace(/\/+$/,'').replace(/\s+/g,'');
+  if(!url.startsWith('http'))url='https://'+url;
+  // Extract just the base supabase URL if someone pasted something longer
+  const sbMatch=url.match(/(https:\/\/[a-zA-Z0-9]+\.supabase\.co)/);
+  if(!sbMatch){
+    err.innerHTML='❌ <strong>Invalid Project URL.</strong><br>It should look like: <code style="color:var(--ok)">https://abcdefghij.supabase.co</code><br>Go to Supabase → Project Settings → API → copy the <strong>Project URL</strong>.';
+    err.classList.add('show');return;
+  }
+  url=sbMatch[1];
+
+  // ── Check 4: anon key format
+  if(!key.startsWith('eyJ')||key.length<100){
+    err.innerHTML='❌ <strong>Invalid anon key.</strong><br>The key should start with <code style="color:var(--ok)">eyJ</code> and be ~200+ characters long.<br>Go to Supabase → Project Settings → API → copy the <strong>anon / public</strong> key (not the service_role key).';
+    err.classList.add('show');return;
+  }
+
+  // ── Show live diagnostic progress
+  err.innerHTML='<div id="diag-log" style="font-size:.66rem;line-height:2;color:var(--text2)">⏳ Running diagnostics...</div>';
+  err.style.background='rgba(59,142,255,.06)';err.style.borderColor='rgba(59,142,255,.3)';err.style.color='var(--info)';
+  err.classList.add('show');
+  const log=txt=>{const el=document.getElementById('diag-log');if(el)el.innerHTML+=('<br>'+txt);};
+
+  showLoader('Diagnosing...');
+
+  // ── Check 5: Skipping no-cors ping — unreliable in Firefox, proceed direct to API test
+  log('⏳ Step 1/3 — Testing Supabase API...');
+
+  // ── Check 6: REST API with key
+  try{
+    log('⏳ Step 2/3 — Testing API key...');
+    const r=await fetch(url+'/rest/v1/',{headers:{'apikey':key,'Authorization':'Bearer '+key}});
+    if(r.status===401){
+      hideLoader();
+      err.style.background='';err.style.borderColor='';err.style.color='';
+      err.innerHTML=
+        '❌ <strong>API key rejected (401 Unauthorized).</strong><br><br>'+
+        '→ Go to Supabase → <strong>Project Settings → API</strong><br>'+
+        '→ Copy the <strong>anon / public</strong> key (NOT the service_role key)<br>'+
+        '→ The anon key starts with <code style="color:var(--ok)">eyJ</code> and is ~200 characters long';
+      return;
+    }
+    log('✓ Step 2/3 — API key accepted');
+  }catch(e){
+    hideLoader();
+    err.style.background='';err.style.borderColor='';err.style.color='';
+    err.innerHTML='❌ <strong>API request failed.</strong> '+e.message+'<br><br>Check your Supabase project is active and the key is correct.';
+    return;
+  }
+
+  // ── Check 7: Tables exist
+  try{
+    log('⏳ Step 3/3 — Checking database tables...');
+    const r=await fetch(url+'/rest/v1/rrh_users?limit=1',{headers:{'apikey':key,'Authorization':'Bearer '+key}});
+    if(!r.ok){
+      const txt=await r.text();
+      hideLoader();
+      err.style.background='';err.style.borderColor='';err.style.color='';
+      if(txt.includes('does not exist')||txt.includes('relation')){
+        err.innerHTML=
+          '❌ <strong>Database tables not found.</strong><br><br>'+
+          'You need to run the SQL setup script first:<br>'+
+          '→ Supabase → <strong>SQL Editor → + New query</strong><br>'+
+          '→ Copy the script from Step 2 above and click <strong>RUN</strong><br>'+
+          '→ Then try connecting again.';
+      }else{
+        err.textContent='Error '+r.status+': '+txt.substring(0,200);
+      }
+      return;
+    }
+    log('✓ Step 3/3 — Tables found');
+  }catch(e){
+    hideLoader();
+    err.style.background='';err.style.borderColor='';err.style.color='';
+    err.textContent='Table check failed: '+e.message;
+    return;
+  }
+
+  // ── All checks passed — save to localStorage for this browser
+  localStorage.setItem(CFG_URL,url);localStorage.setItem(CFG_KEY,key);
+  SB.url=url;SB.key=key;
+  _pendingUrl=url;
+  _pendingKey=key;
+  await loadAll();
+
+  err.classList.remove('show');err.style.background='';err.style.borderColor='';err.style.color='';
+  ok.innerHTML=
+    '<div style="font-family:var(--sans);font-size:.82rem;font-weight:900;color:var(--ok);letter-spacing:2px;margin-bottom:10px">✓ CONNECTION SUCCESSFUL!</div>'+
+    '<div style="font-size:.68rem;color:var(--text2);line-height:1.9;margin-bottom:14px">'+
+    '<strong style="color:var(--warn)">⚠ Do this once so all users skip this setup screen:</strong><br>'+
+    '1. Click <strong>Download Configured File</strong> below<br>'+
+    '2. Go to your Netlify site dashboard → drag the new file to redeploy<br>'+
+    '3. Done — every visitor goes straight to the login screen from now on'+
+    '</div>'+
+    '<div style="display:flex;gap:9px;flex-wrap:wrap">'+
+    '<button onclick="downloadConfigured()" style="font-family:var(--sans);font-size:.72rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:11px 22px;background:var(--ok);color:var(--bg);border:none;cursor:pointer;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%)">⬇ DOWNLOAD CONFIGURED FILE</button>'+
+    '<button onclick="skipDownload()" style="font-family:var(--sans);font-size:.72rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:11px 22px;background:transparent;color:var(--info);border:1px solid rgba(59,142,255,.3);cursor:pointer">→ SKIP, GO TO LOGIN</button>'+
+    '</div>';
+  ok.classList.add('show');
+  hideLoader();
+}
+
+function skipDownload(){
+  document.getElementById('setup-screen').classList.remove('show');
+  showLogin();
+}
+
+function downloadConfigured(){
+  const url=_pendingUrl||SB.url;
+  const key=_pendingKey||SB.key;
+  if(!url||!key){toast('No credentials to save — run Test Connection first','','terr');return;}
+  fetch(location.href)
+    .then(r=>r.text())
+    .then(src=>{
+      src=src.replace(
+        "const SUPABASE_URL = '';  // ← auto-filled by setup wizard",
+        "const SUPABASE_URL = '" + url + "';  // configured"
+      );
+      src=src.replace(
+        "const SUPABASE_KEY = '';  // ← auto-filled by setup wizard",
+        "const SUPABASE_KEY = '" + key + "';  // configured"
+      );
+      const blob=new Blob([src],{type:'text/html'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='tejas_rrh_platform_configured.html';
+      a.click();
+      setTimeout(()=>{
+        document.getElementById('setup-screen').classList.remove('show');
+        showLogin();
+      },1000);
+    })
+    .catch(()=>{
+      document.getElementById('setup-screen').classList.remove('show');
+      showLogin();
+      toast('Download failed — credentials saved in this browser. Re-open setup to try again.');
+    });
+}
+
+// ═══════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════
+function showLogin(){document.getElementById('login-screen').classList.add('show');}
+
+function swTab(tab){
+  document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.apnl').forEach(p=>p.classList.remove('active'));
+  const allTabs=document.querySelectorAll('.atab');
+  allTabs.forEach(t=>{if(t.getAttribute('onclick')==="swTab('"+tab+"')")t.classList.add('active');});
+  document.getElementById('panel-'+tab).classList.add('active');
+  const _pn=document.getElementById('pend-notice')||document.getElementById('req-pending');if(_pn)_pn.classList.remove('show');
+}
+
+async function doLogin(){
+  const user=document.getElementById('l-user').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  const err=document.getElementById('lerr');
+  err.classList.remove('show');
+  if(!user||!pass){setE(err,'Enter username and password');return;}
+  showLoader('Authenticating...');
+  try{
+    const rows=await SB.get('rrh_users','username=eq.'+encodeURIComponent(user));
+    if(!rows||!rows.length){setE(err,'Invalid username or password');hideLoader();return;}
+    const u=rows[0];
+    if(u.password!==pass){setE(err,'Invalid username or password');hideLoader();return;}
+    if(u.status==='pending'){setE(err,'⏳ Your account is pending admin approval. Please wait.');hideLoader();return;}
+    if(u.status==='rejected'){setE(err,'✕ Your access request was rejected. Contact the administrator.');hideLoader();return;}
+    await loadAll();
+    CU=u; sessionStorage.setItem(SES_KEY,JSON.stringify(u));
+    hideLoader();
+    document.getElementById('login-screen').classList.remove('show');
+    launchApp();
+  }catch(e){setE(err,'Login error: '+e.message);hideLoader();}
+}
+
+async function doRegister(){
+  const name=document.getElementById('r-name').value.trim();
+  const empid=document.getElementById('r-empid').value.trim();
+  const dept=document.getElementById('r-dept').value.trim();
+  const desig=document.getElementById('r-desig').value.trim();
+  const user=document.getElementById('r-user').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  const ba=document.getElementById('r-ba').value;
+  const reason=document.getElementById('r-reason').value.trim();
+  const err=document.getElementById('rerr'),ok=document.getElementById('rok');
+  err.classList.remove('show');ok.classList.remove('show');
+  if(!name||!empid||!dept||!desig||!user||!pass||!ba||!reason){setE(err,'All fields are required including BA Name');return;}
+  if(pass.length<6){setE(err,'Password must be at least 6 characters');return;}
+  showLoader('Submitting request...');
+  try{
+    const [existing,pending]=await Promise.all([
+      SB.get('rrh_users','username=eq.'+encodeURIComponent(user)),
+      SB.get('rrh_requests','username=eq.'+encodeURIComponent(user)+'&status=eq.pending')
+    ]);
+    if(existing&&existing.length){setE(err,'Username already exists');hideLoader();return;}
+    if(pending&&pending.length){setE(err,'A pending request for this username already exists');hideLoader();return;}
+    await SB.post('rrh_requests',{name,empid,dept,desig,username:user,password:pass,reason,ba_access:ba,status:'pending'});
+    ok.textContent='✓ Request submitted for '+ba+' access! Username: "'+user+'" — wait for admin approval.';
+    ok.classList.add('show');
+    ['r-name','r-empid','r-dept','r-desig','r-user','r-pass','r-reason'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('r-ba').value='';
+    const _pna=document.getElementById('pend-notice')||document.getElementById('req-pending');if(_pna){_pna.style.display='block';_pna.classList.add('show');}
+  }catch(e){setE(err,'Error: '+e.message);}
+  finally{hideLoader();}
+}
+
+function setE(el,msg){el.textContent=msg;el.classList.add('show');}
+
+function launchApp(){
+  document.getElementById('app').style.display='flex';
+  document.getElementById('app').style.flexDirection='column';
+  document.getElementById('nav-uname').textContent=CU.name;
+  const avatarEl=document.getElementById('nav-avatar');
+  if(avatarEl){
+    const initials=CU.name?CU.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2):'?';
+    avatarEl.textContent=initials;
+  }
+  // nav-role set above via canWrite logic
+  const adm=CU.role==='admin';
+  const canWrite=CU.role==='admin'||CU.role==='analyst';
+  const rp2=document.getElementById('nav-role');
+  const baTag=CU.ba_access&&CU.ba_access!=='ALL'?' ['+CU.ba_access+']':'';
+  rp2.textContent=(adm?'ADMIN':canWrite?'ANALYST':'VIEW ONLY')+baTag;
+  rp2.className='rp '+(adm?'rpa':canWrite?'rpu':'rpu');
+  document.getElementById('tab-analyze').style.display=canWrite?'flex':'none';
+  document.getElementById('tab-admin').style.display=adm?'flex':'none';
+  document.getElementById('vo-bar').style.display=canWrite?'none':'block';
+  document.getElementById('admin-only-btns').style.display=adm?'flex':'none';
+  if(adm){updPB();startRequestPoll();showPage('records');}
+  else{showPage('records');}
+  document.getElementById('rec-count').textContent=C.records.length;
+}
+
+function doLogout(){
+  sessionStorage.removeItem(SES_KEY);CU=null;stopRequestPoll();
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').classList.add('show');
+  document.getElementById('l-user').value='';document.getElementById('l-pass').value='';
+  document.getElementById('lerr').classList.remove('show');
+  document.getElementById('results').style.display='none';
+  document.getElementById('btn-export').style.display='none';
+}
+
+function updPB(){
+  const n=C.requests.filter(r=>r.status==='pending').length;
+  ['pbdg','req-cnt-badge'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=n;el.style.display=n>0?'inline-block':'none';}
+  });
+}
+
+// Poll for new requests every 30s when admin is logged in
+let _pollTimer=null;
+function startRequestPoll(){
+  if(_pollTimer)return;
+  _pollTimer=setInterval(async()=>{
+    if(!CU||CU.role!=='admin')return;
+    try{
+      const reqs=await SB.get('rrh_requests','order=submitted_at.desc');
+      const prev=C.requests.filter(r=>r.status==='pending').length;
+      C.requests=reqs||[];
+      const now=C.requests.filter(r=>r.status==='pending').length;
+      updPB();
+      // If new requests arrived and admin is on the requests tab, refresh it
+      if(now>prev){
+        toast('⬡ '+(now-prev)+' new access request'+((now-prev)>1?'s':'')+'!','','twrn');
+        const activeTab=document.querySelector('.admpl.active');
+        if(activeTab&&activeTab.id==='adm-requests')renderRequests();
+      }
+    }catch(e){}
+  },30000);
+}
+function stopRequestPoll(){if(_pollTimer){clearInterval(_pollTimer);_pollTimer=null;}}
+
+// ═══════════════════════════════════════
+// INIT — runs on page load
+// ═══════════════════════════════════════
+// Fill CORS helper text
+(function(){
+  const el=document.getElementById('sw-origin');
+  if(el)el.textContent=location.origin||'(your Netlify URL)';
+})();
+
+(async function init(){
+  // file:// check
+  if(location.protocol==='file:'){
+    document.getElementById('setup-screen').classList.add('show');
+    document.getElementById('file-warn').classList.add('show');
+    return;
+  }
+  // If hardcoded constants are filled OR localStorage has credentials → skip wizard
+  if(!SB.ready()){
+    document.getElementById('setup-screen').classList.add('show');
+    return;
+  }
+  // Credentials present — go straight to login
+  showLoader('Loading...');
+  try{
+    await loadAll();
+    hideLoader();
+    const s=sessionStorage.getItem(SES_KEY);
+    if(s){
+      try{CU=JSON.parse(s);launchApp();}
+      catch(e){showLogin();}
+    }else{showLogin();}
+  }catch(e){
+    hideLoader();
+    showLogin();
+    setTimeout(()=>{
+      const el=document.getElementById('lerr');
+      if(!el)return;
+      const msg=e.message||'';
+      const isCors=msg.includes('NetworkError')||msg.includes('Failed to fetch')||msg.includes('CORS')||msg.includes('fetch');
+      if(isCors){
+        el.innerHTML=
+          '<strong style="color:var(--warn)">⚠ CORS Error — Browser is blocking the Supabase connection.</strong><br><br>'+
+          'This happens when your Netlify URL is not added to Supabase allowed origins.<br><br>'+
+          '<strong>Fix (takes 1 minute):</strong><br>'+
+          '1. Go to <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--info)">supabase.com/dashboard</a><br>'+
+          '2. Open your project → <strong>Project Settings</strong> (bottom left)<br>'+
+          '3. Click <strong>API</strong> tab<br>'+
+          '4. Scroll to <strong>CORS Allowed Origins</strong><br>'+
+          '5. Add your Netlify URL: <code style="color:var(--ok)">'+location.origin+'</code><br>'+
+          '6. Click <strong>Save</strong> → refresh this page';
+      }else{
+        el.innerHTML='<strong>⚠ Could not connect to cloud database.</strong><br>'+e.message+'<br><br>Check your Supabase project is active at <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--info)">supabase.com/dashboard</a>';
+      }
+      el.classList.add('show');
+    },400);
+  }
+})();
+
+// ═══════════════════════════════════════
+// ADMIN FUNCTIONS
+// ═══════════════════════════════════════
+async function approveRequest(id, role, ba){
+  const req=C.requests.find(r=>r.id===id);if(!req)return;
+  const assignedRole=role||'user';
+  const assignedBA=ba||req.ba_access||'ALL';
+  showLoader('Approving...');
+  try{
+    await SB.patch('rrh_requests','id=eq.'+id,{status:'approved',resolved_at:new Date().toISOString()});
+    const ex=await SB.get('rrh_users','username=eq.'+encodeURIComponent(req.username));
+    if(!ex||!ex.length){
+      await SB.post('rrh_users',{username:req.username,password:req.password,name:req.name,empid:req.empid,dept:req.dept,desig:req.desig,role:assignedRole,status:'active',ba_access:assignedBA});
+    }else{
+      await SB.patch('rrh_users','username=eq.'+encodeURIComponent(req.username),{role:assignedRole,status:'active',ba_access:assignedBA});
+    }
+    await loadAll();updPB();renderRequests();
+    const roleLabel=assignedRole==='admin'?'Admin':assignedRole==='analyst'?'Analyst':'View Only';
+    toast('✓ '+req.name+' approved — '+roleLabel+' / '+assignedBA);
+  }catch(e){toast('Error: '+e.message,'','terr');}
+  finally{hideLoader();}
+}
+
+function rejectRequest(id){
+  const req=C.requests.find(r=>r.id===id);if(!req)return;
+  showConfirm('Reject Request','Reject access request from "'+req.name+'"?',async()=>{
+    showLoader('Rejecting...');
+    try{
+      await SB.patch('rrh_requests','id=eq.'+id,{status:'rejected',resolved_at:new Date().toISOString()});
+      await loadAll();updPB();renderRequests();
+      toast('Request rejected','','twrn');
+    }catch(e){toast('Error: '+e.message,'','terr');}
+    finally{hideLoader();}
+  });
+}
+
+function renderRequests(){
+  const pending=C.requests.filter(r=>r.status==='pending');
+  const resolved=C.requests.filter(r=>r.status!=='pending');
+  const el=document.getElementById('req-list');
+
+  // Header with live refresh
+  let h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
+    +'<div style="font-family:var(--sans);font-size:.64rem;color:var(--muted2);letter-spacing:1px">Last synced: <span id="req-sync-time">'+new Date().toLocaleTimeString()+'</span></div>'
+    +'<button class="btn bo bsm" onclick="refreshRequests()">⟳ REFRESH REQUESTS</button>'
+    +'</div>';
+
+  if(!C.requests.length){
+    el.innerHTML=h+'<div class="empty"><div class="empty-i">⬡</div><div class="empty-t">No Access Requests</div><div class="empty-s">New user registrations will appear here automatically</div></div>';
+    return;
+  }
+
+  if(pending.length){
+    h+='<div class="sh" style="margin-bottom:10px"><h2>⬡ Pending Approval ('+pending.length+')</h2></div>';
+    h+=pending.map(r=>`<div class="req-card">
+      <div class="req-hd">
+        <div><div class="req-nm">${r.name}</div><div class="req-ts">Submitted: ${new Date(r.submitted_at).toLocaleString()}</div></div>
+        <span class="rb-p">PENDING</span>
+      </div>
+      <div class="req-dg">
+        <div class="req-di"><div class="req-dlb">Employee ID</div><div class="req-dv">${r.empid}</div></div>
+        <div class="req-di"><div class="req-dlb">Department</div><div class="req-dv">${r.dept}</div></div>
+        <div class="req-di"><div class="req-dlb">Designation</div><div class="req-dv">${r.desig}</div></div>
+        <div class="req-di"><div class="req-dlb">Username</div><div class="req-dv" style="color:var(--info)">${r.username}</div></div>
+        <div class="req-di"><div class="req-dlb">Requested BA</div><div class="req-dv" style="color:var(--warn);font-weight:700">${r.ba_access||'NOT SPECIFIED'}</div></div>
+        <div class="req-di" style="grid-column:1/-1;background:rgba(6,182,212,.07);border:1px solid rgba(6,182,212,.18);border-radius:4px;padding:5px 10px;margin-top:4px"><div class="req-dlb" style="color:var(--cyan)">Requested BA Access</div><div class="req-dv" style="color:var(--cyan);font-weight:700;font-size:.76rem">${r.ba_access||'ALL'}</div></div>
+      </div>
+      <div class="req-rsn"><strong>Reason for Access</strong>${r.reason}</div>
+      <div class="req-acts" style="align-items:center;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <label style="font-size:.5rem;color:var(--muted2);letter-spacing:2px;text-transform:uppercase">Grant Role</label>
+          <select id="role-${r.id}" style="background:var(--surface);border:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:.68rem;padding:5px 8px;outline:none;min-width:180px">
+            <option value="user">👁 View Only — Read records, export</option>
+            <option value="analyst">✏ Analyst — Analyze &amp; save reports</option>
+            <option value="admin">⬡ Admin — Full access + manage users</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <label style="font-size:.5rem;color:var(--muted2);letter-spacing:2px;text-transform:uppercase">BA Access (user will only see this BA's records)</label>
+          <select id="ba-${r.id}" style="background:var(--surface);border:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:.68rem;padding:5px 8px;outline:none;min-width:160px">
+            <option value="${r.ba_access||'ALL'}" selected>${r.ba_access||'ALL'} (requested by user)</option>
+<option value="ALL">ALL — Full Fleet</option>
+            <option value="Balasore">Balasore</option>
+            <option value="Bhadrak">Bhadrak</option>
+            <option value="Baripada">Baripada</option>
+            <option value="Cuttack">Cuttack</option>
+            <option value="Bhubaneswar">Bhubaneswar</option>
+            <option value="Puri">Puri</option>
+            <option value="Berhampur">Berhampur</option>
+            <option value="Sambalpur">Sambalpur</option>
+            <option value="Rourkela">Rourkela</option>
+            <option value="Jharsuguda">Jharsuguda</option>
+            <option value="Koraput">Koraput</option>
+            <option value="Rayagada">Rayagada</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:7px;margin-top:2px">
+          <button class="btn bapprove bsm" onclick="approveWithRole('${r.id}')">✓ APPROVE</button>
+          <button class="btn breject bsm" onclick="rejectRequest('${r.id}')">✕ REJECT</button>
+        </div>
+      </div>
+    </div>`).join('');
+  }else{
+    h+='<div style="background:var(--ok-dim);border:1px solid rgba(0,229,160,.2);border-left:3px solid var(--ok);padding:10px 13px;margin-bottom:12px;font-size:.66rem;color:var(--ok)">✓ No pending requests</div>';
+  }
+
+  if(resolved.length){
+    h+='<div class="sh" style="margin:16px 0 10px"><h2>⬡ Resolved Requests ('+resolved.length+')</h2></div>';
+    h+='<div class="tw"><table><thead><tr><th>Name</th><th>Emp ID</th><th>Dept</th><th>Username</th><th>Role Granted</th><th>Submitted</th><th>Status</th></tr></thead><tbody>';
+    h+=resolved.map(r=>{
+      const u=C.users.find(u=>u.username===r.username);
+      const roleLabel=u?(u.role==='admin'?'Admin':u.role==='analyst'?'Analyst':'View Only'):'—';
+      return`<tr>
+        <td style="color:var(--text2)">${r.name}</td>
+        <td>${r.empid}</td><td>${r.dept}</td>
+        <td style="color:var(--info)">${r.username}</td>
+        <td><span class="rp ${u&&u.role==='admin'?'rpa':'rpu'}">${roleLabel}</span></td>
+        <td>${new Date(r.submitted_at).toLocaleString()}</td>
+        <td><span class="sp ${r.status==='approved'?'spa':'spr'}">${r.status.toUpperCase()}</span></td>
+      </tr>`;
+    }).join('');
+    h+='</tbody></table></div>';
+  }
+  el.innerHTML=h;
+}
+
+function approveWithRole(id){
+  const sel=document.getElementById('role-'+id);
+  const role=sel?sel.value:'user';
+  const baSel=document.getElementById('ba-'+id);
+  const ba=baSel?baSel.value:'ALL';
+  approveRequest(id, role, ba);
+}
+
+async function refreshRequests(){
+  showLoader('Fetching latest requests...');
+  try{
+    const reqs=await SB.get('rrh_requests','order=submitted_at.desc');
+    C.requests=reqs||[];
+    updPB();
+    renderRequests();
+    const el=document.getElementById('req-sync-time');
+    if(el)el.textContent=new Date().toLocaleTimeString();
+    toast('Requests refreshed — '+C.requests.filter(r=>r.status==='pending').length+' pending');
+  }catch(e){toast('Refresh failed: '+e.message,'','terr');}
+  finally{hideLoader();}
+}
+
+function renderUsers(){
+  const baOpts=['Balasore','Bhadrak','Baripada','Cuttack','Bhubaneswar','Puri','Berhampur','Sambalpur','Rourkela','Jharsuguda','Koraput','Rayagada'];
+  const baOptsHtml='<option value="ALL">ALL — Full Fleet</option>'+baOpts.map(b=>`<option value="${b}">${b}</option>`).join('');
+  const selStyle='background:var(--bg2);border:1px solid var(--border2);color:var(--text2);font-family:var(--mono);font-size:.6rem;padding:3px 6px;outline:none;width:100%;margin-top:2px;border-radius:var(--radius)';
+  document.getElementById('user-list').innerHTML=`<div class="tw"><table><thead><tr>
+    <th>Name</th><th>Username</th><th>Emp ID</th><th>Dept / Designation</th>
+    <th>Current Role</th><th>Current BA</th><th>Change Role</th><th>Change BA</th><th>Created</th><th>Action</th>
+  </tr></thead><tbody>
+  ${C.users.map(u=>`<tr>
+    <td><span style="font-family:var(--display);font-weight:600;color:var(--text)">${u.name}</span></td>
+    <td><span style="font-family:var(--mono);font-size:.7rem;color:var(--cyan)">${u.username}</span></td>
+    <td style="font-family:var(--mono);font-size:.68rem">${u.empid||'—'}</td>
+    <td style="font-size:.62rem">${u.dept||'—'}<br><span style="color:var(--muted);font-size:.56rem">${u.desig||''}</span></td>
+    <td><span class="rp ${u.role==='admin'?'rpa':'rpu'}">${u.role==='admin'?'ADMIN':u.role==='analyst'?'ANALYST':'VIEW ONLY'}</span></td>
+    <td><span style="font-family:var(--mono);font-size:.62rem;color:var(--warn);background:rgba(255,184,0,.06);border:1px solid rgba(255,184,0,.2);padding:2px 7px;border-radius:2px">${u.ba_access||'ALL'}</span></td>
+    <td style="min-width:130px">${u.username!=='admin'?`
+      <select style="${selStyle}" onchange="changeUserRole('${u.id}','${u.username}',this.value)">
+        <option value="user"   ${u.role==='user'   ?'selected':''}>👁 View Only</option>
+        <option value="analyst"${u.role==='analyst'?'selected':''}>✏ Analyst</option>
+        <option value="admin"  ${u.role==='admin'  ?'selected':''}>⬡ Admin</option>
+      </select>`:'<span style="color:var(--muted);font-size:.6rem">Protected</span>'}
+    </td>
+    <td style="min-width:140px">${u.username!=='admin'?`
+      <select style="${selStyle}" onchange="changeUserBA('${u.id}','${u.username}',this.value)">
+        ${baOptsHtml.replace(`value="${u.ba_access||'ALL'}"`,`value="${u.ba_access||'ALL'}" selected`)}
+      </select>`:'<span style="color:var(--muted);font-size:.6rem">ALL</span>'}
+    </td>
+    <td style="font-family:var(--mono);font-size:.62rem;color:var(--muted)">${u.created_at?new Date(u.created_at).toLocaleDateString():'—'}</td>
+    <td>${u.username!=='admin'?`
+      <button class="btn bd bxs" onclick="delUser('${u.id}','${u.username}')" title="Delete user account" style="white-space:nowrap">
+        ✕ DELETE
+      </button>`:'—'}
+    </td>
+  </tr>`).join('')}
+  </tbody></table></div>`;
+}
+
+async function changeUserRole(id, username, newRole){
+  if(username==='admin'){toast('Cannot change admin role','','terr');return;}
+  showLoader('Updating role...');
+  try{
+    await SB.patch('rrh_users','id=eq.'+id,{role:newRole});
+    await loadAll();
+    renderUsers();
+    const label=newRole==='admin'?'Admin':newRole==='analyst'?'Analyst':'View Only';
+    toast('✓ '+username+' role → '+label);
+  }catch(e){toast('Error: '+e.message,'','terr');}
+  finally{hideLoader();}
+}
+
+async function changeUserBA(id, username, newBA){
+  if(username==='admin'){toast('Cannot change admin BA','','terr');return;}
+  showLoader('Updating BA access...');
+  try{
+    await SB.patch('rrh_users','id=eq.'+id,{ba_access:newBA});
+    await loadAll();
+    renderUsers();
+    toast('✓ '+username+' BA access → '+(newBA==='ALL'?'Full Fleet':newBA));
+  }catch(e){toast('Error: '+e.message,'','terr');}
+  finally{hideLoader();}
+}
+
+function renderStats(){
+  const byU={};
+  for(const r of C.records)byU[r.by_name||'Unknown']=(byU[r.by_name||'Unknown']||0)+1;
+  const pend=C.requests.filter(r=>r.status==='pending').length;
+  document.getElementById('stats-content').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:13px">
+      <div class="rs" style="padding:11px"><div class="rsn" style="color:var(--info)">${C.users.length}</div><div class="rsl">Active Users</div></div>
+      <div class="rs" style="padding:11px"><div class="rsn" style="color:var(--ok)">${C.records.length}</div><div class="rsl">Total Records</div></div>
+      <div class="rs" style="padding:11px"><div class="rsn" style="color:var(--warn)">${pend}</div><div class="rsl">Pending Requests</div></div>
+      <div class="rs" style="padding:11px"><div class="rsn" style="color:var(--text3)">${C.requests.length}</div><div class="rsl">All Requests</div></div>
+    </div>
+    <div class="sh"><h2>⬡ Records by Engineer</h2></div>
+    <div class="tw"><table><thead><tr><th>Engineer</th><th>Records</th><th>Last Activity</th></tr></thead><tbody>
+    ${Object.entries(byU).map(([n,c])=>{
+      const lat=C.records.filter(r=>(r.by_name||'Unknown')===n).sort((a,b)=>new Date(b.updated_at)-new Date(a.updated_at))[0];
+      return`<tr><td style="color:var(--text2)">${n}</td><td style="color:var(--info);font-family:var(--sans);font-weight:700">${c}</td><td>${lat?lat.report_dt:'—'}</td></tr>`;
+    }).join('')}
+    </tbody></table></div>`;
+}
+
+function renderConfig(){
+  document.getElementById('cfg-content').innerHTML=`<div class="card">
+    <div class="sh"><h2>⬡ Database Configuration</h2></div>
+    <div style="font-size:.67rem;color:var(--text2);margin-bottom:13px;line-height:1.7">
+      Connected to: <span style="color:var(--ok)">${SB.url}</span><br>
+      To switch to a different Supabase project, update the credentials below.
+    </div>
+    <div class="sw-fields">
+      <div class="sw-field"><label>Project URL</label><input class="sw-inp" id="cfg-url" type="text" value="${SB.url}"/></div>
+      <div class="sw-field"><label>Anon Key</label><input class="sw-inp" id="cfg-key" type="text" value="${SB.key}"/></div>
+    </div>
+    <div class="br">
+      <button class="btn bp" onclick="saveConfig()">⬡ SAVE &amp; RECONNECT</button>
+      <button class="btn bd" onclick="resetSetup()">⬡ RESET (SHOW SETUP WIZARD)</button>
+    </div>
+    <div class="sw-err" id="cfg-err"></div>
+    <div class="sw-ok" id="cfg-ok"></div>
+  </div>`;
+}
+
+async function saveConfig(){
+  const url=document.getElementById('cfg-url').value.trim().replace(/\/+$/,'');
+  const key=document.getElementById('cfg-key').value.trim();
+  const err=document.getElementById('cfg-err'),ok=document.getElementById('cfg-ok');
+  err.classList.remove('show');ok.classList.remove('show');
+  showLoader('Testing...');
+  try{
+    const r=await fetch(url+'/rest/v1/rrh_users?limit=1',{headers:{'apikey':key,'Authorization':'Bearer '+key}});
+    if(!r.ok){const t=await r.text();err.textContent='Error: '+t.substring(0,120);err.classList.add('show');hideLoader();return;}
+    localStorage.setItem(CFG_URL,url);localStorage.setItem(CFG_KEY,key);
+    SB.url=url;SB.key=key;
+    await loadAll();
+    document.getElementById('rec-count').textContent=C.records.length;
+    _pendingUrl=url; _pendingKey=key;
+    ok.innerHTML='✓ Reconnected! &nbsp;<button onclick="downloadConfigured()" style="font-family:var(--sans);font-size:.6rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;background:var(--ok);color:var(--bg);border:none;cursor:pointer;margin-left:8px">⬇ DOWNLOAD CONFIGURED FILE</button>';
+    ok.classList.add('show');
+    toast('Database reconnected ✓');
+  }catch(e){err.textContent=e.message;err.classList.add('show');}
+  finally{hideLoader();}
+}
+
+function resetSetup(){
+  localStorage.removeItem(CFG_URL);localStorage.removeItem(CFG_KEY);
+  sessionStorage.removeItem(SES_KEY);
+  location.reload();
+}
+
+async function delUser(id,username){
+  showConfirm('Remove User','Remove user "'+username+'"? Their records will remain.',async()=>{
+    showLoader('Removing...');
+    try{await SB.del('rrh_users','id=eq.'+id);await loadAll();renderUsers();renderStats();toast('User removed');}
+    catch(e){toast('Error: '+e.message,'','terr');}
+    finally{hideLoader();}
+  });
+}
+
+function swAdmTab(tab){
+  document.querySelectorAll('.atab2').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admpl').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.atab2').forEach(t=>{if(t.getAttribute('onclick')==="swAdmTab('"+tab+"')")t.classList.add('active');});
+  const pnl=document.getElementById('adm-'+tab);
+  if(pnl)pnl.classList.add('active');
+  if(tab==='requests')renderRequests();
+  if(tab==='users')renderUsers();
+  if(tab==='stats')renderStats();
+  if(tab==='config')renderConfig();
+}
+
+// ═══════════════════════════════════════
+// ANALYSIS ENGINE
+// ═══════════════════════════════════════
+function parseReport(txt){
+  const d={};
+  for(const line of txt.split('\n')){
+    const m=line.match(/^([a-zA-Z0-9_\[\]]+)\s*=\s*(.+)$/);
+    if(m)d[m[1].trim()]=m[2].trim();
+  }
+  return d;
+}
+
+function assess(key,raw){
+  const def=PD[key];if(!def)return{s:'INFO',c:'cok',dot:'dok'};
+  if(def.f==='str'){
+    if(!def.ok)return{s:'OK',c:'cok',dot:'dok'};
+    return def.ok.some(v=>raw.toLowerCase().includes(v.toLowerCase()))
+      ?{s:'OK',c:'cok',dot:'dok'}:{s:'CHECK',c:'cfl',dot:'dfl',r:'Unexpected value — verify CPRI link state'};
+  }
+  const n=parseFloat(raw);
+  if(isNaN(n))return{s:'N/A',c:'cna',dot:'dna'};
+  if(def.f==='bool')return n===1?{s:'ACTIVE',c:'cok',dot:'dok'}:{s:'INACTIVE',c:'cfl',dot:'dfl',r:'Port inactive — check hardware and alarm logs'};
+  if(def.ok){const[lo,hi]=def.ok;if(n>=lo&&n<=hi)return{s:'OK',c:'cok',dot:'dok'};}
+  if(def.w){const[lo,hi]=def.w;if(n>=lo&&n<=hi)return{s:'WARN',c:'cwn',dot:'dwn',r:getRec(key,n,def)};}
+  return{s:'CHECK',c:'cfl',dot:'dfl',r:getRec(key,n,def)};
+}
+
+function getRec(key,n,def){
+  const k=key.toLowerCase();
+  if(k.includes('vswr')){if(n>3)return'CRITICAL: Immediate inspection of antenna, feeder and connectors required';if(n>2)return'Poor impedance match — inspect connectors and check for water ingress';return'Marginal mismatch — check jumper connections and antenna condition';}
+  if(k.includes('tx_power')||k.includes('pa_power'))return n<(def.ok||[38])[0]?'Low TX power — check PA health, cable loss and supply voltage':'High TX power — verify attenuator settings';
+  if(k.includes('rx_power')){if(n<-105)return'Very low RX — check antenna, feeder or LNA failure';if(n>-60)return'High RX signal — possible near-field interference';return'RX power out of nominal — inspect RF path';}
+  if(k.includes('temp'))return n>70?'Overheating — check cooling and airflow immediately':'Elevated temperature — monitor trend and ensure ventilation';
+  if(k.includes('sfp_tx'))return'SFP TX degraded — clean connector or replace transceiver';
+  if(k.includes('sfp_rx'))return'SFP RX low — check fiber cleanliness and path loss';
+  if(k.includes('aclr'))return'Elevated ACLR — may cause interference; verify DPD calibration';
+  if(k.includes('volt'))return'Voltage deviation — check PSU health and cabling';
+  if(k.includes('iq')||k.includes('angle'))return'IQ/Phase error — schedule RFIC calibration';
+  if(k.includes('loss')||k.includes('lof'))return'CPRI alarm active — check fiber and SFP module';
+  return'Out of range — investigate with site team';
+}
+
+function analyzeData(rawData){
+  let ok=0,warn=0,fail=0,known=0;
+  const asmt={},fi=[],wi=[];
+  for(const[key,val] of Object.entries(rawData)){
+    if(!PD[key])continue;known++;
+    const a=assess(key,val);asmt[key]={...a,raw:val};
+    if(a.s==='OK'||a.s==='ACTIVE')ok++;
+    else if(a.s==='WARN'){warn++;wi.push({key,label:PD[key].l,a});}
+    else if(a.s==='CHECK'||a.s==='INACTIVE'){fail++;fi.push({key,label:PD[key].l,a});}
+  }
+  const hp=known>0?Math.round((ok/known)*100):0;
+  return{asmt,ok,warn,fail,known,hp,fi,wi};
+}
+
+function pctIn(n,def){
+  if(!def.ok)return 50;
+  const[lo,hi]=def.ok;if(hi===lo)return n===lo?100:0;
+  return Math.max(0,Math.min(100,((n-lo)/(hi-lo))*100));
+}
+
+function renderSb(stats,id){
+  const{hp,ok,warn,fail,known}=stats;
+  const hcl=hp>=85?'bok':hp>=60?'bwn':'bfl';
+  const hco=hp>=85?'var(--ok)':hp>=60?'var(--warn)':'var(--fail)';
+  document.getElementById(id).innerHTML=`
+    <div class="sbc ${hcl}"><div class="sbn">${hp}%</div><div class="sbl">Health Score</div><div class="gw"><div class="gf" style="width:${hp}%;background:${hco}"></div></div></div>
+    <div class="sbc bneu"><div class="sbn">${known}</div><div class="sbl">Params Checked</div></div>
+    <div class="sbc bok"><div class="sbn">${ok}</div><div class="sbl">Within Range</div></div>
+    <div class="sbc bwn"><div class="sbn">${warn}</div><div class="sbl">Warnings</div></div>
+    <div class="sbc bfl"><div class="sbn">${fail}</div><div class="sbl">Need Attention</div></div>`;
+}
+
+function renderAlert(stats,bid,cid){
+  const b=document.getElementById(bid);
+  if(stats.fi.length||stats.wi.length){
+    b.classList.add('show');
+    document.getElementById(cid).innerHTML=[
+      ...stats.fi.map(i=>`<span class="chip cf">⚠ ${i.label}</span>`),
+      ...stats.wi.map(i=>`<span class="chip cw">△ ${i.label}</span>`)
+    ].join('');
+  }else b.classList.remove('show');
+}
+
+function renderTables(rawData,asmt,areaId){
+  const area=document.getElementById(areaId);area.innerHTML='';
+  for(const group of GROUPS){
+    const params=Object.keys(PD).filter(k=>PD[k].g===group&&rawData[k]!==undefined);
+    if(!params.length)continue;
+    const sh=document.createElement('div');sh.className='sh';
+    sh.innerHTML=`<h2>${GICO[group]||'·'} ${group}</h2>`;area.appendChild(sh);
+    const wrap=document.createElement('div');wrap.className='tw';
+    let h=`<table><thead><tr><th>Parameter</th><th>Description</th><th>Value</th><th>Unit</th><th>Range</th><th>Status</th><th>Recommendation</th></tr></thead><tbody>`;
+    for(const key of params){
+      const def=PD[key];
+      const a=asmt[key]||{s:'N/A',c:'cna',dot:'dna',raw:rawData[key]};
+      const num=parseFloat(a.raw);
+      let rng='—';
+      if(def.ok&&def.f!=='bool'&&def.f!=='str')rng=`${def.ok[0]} – ${def.ok[1]}`;
+      else if(def.f==='bool')rng='1 (Active)';
+      else if(def.f==='str'&&def.ok)rng=def.ok.join(' / ');
+      let bar='';
+      if(!isNaN(num)&&def.ok&&def.f!=='bool'&&def.f!=='int'){
+        const p=pctIn(num,def);
+        const bc=a.s==='OK'||a.s==='ACTIVE'?'var(--ok)':a.s==='WARN'?'var(--warn)':'var(--fail)';
+        bar=`<div class="mbw"><div class="mb"><div class="mbf" style="width:${p}%;background:${bc}"></div></div></div>`;
+      }
+      const rec=a.r?`<span class="rr ${a.s==='CHECK'||a.s==='INACTIVE'?'cfl':'cwn'}">${a.r}</span>`:`<span class="rt">—</span>`;
+      h+=`<tr><td>${def.l}</td><td><span class="rt">${def.d}</span></td><td><div class="vc ${a.c}"><div class="dot ${a.dot}"></div>${a.raw}</div>${bar}</td><td><span class="rt">${def.u||'—'}</span></td><td><span class="rt">${rng}${def.u?' '+def.u:''}</span></td><td><span class="${a.c}" style="font-weight:700;font-size:.66rem">${a.s}</span></td><td>${rec}</td></tr>`;
+    }
+    h+='</tbody></table>';wrap.innerHTML=h;area.appendChild(wrap);
+  }
+}
+
+// ═══════════════════════════════════════
+// DUPLICATE CHECK
+// ═══════════════════════════════════════
+function findInCache(name,band,sector){
+  return C.records.find(r=>r.enb_name===name&&r.band===band&&r.sector===sector)||null;
+}
+
+function validateAnalyzeFields(){
+  // Field definitions: [id, type, label, required]
+  const fields=[
+    {id:'inp-name', type:'text',   label:'eNodeB Name', req:true},
+    {id:'inp-ba',   type:'select', label:'BA Name',     req:true},
+    {id:'inp-band', type:'select', label:'Band',        req:false},
+    {id:'inp-sector',type:'select',label:'Sector',      req:false},
+    {id:'paste-area',type:'text',  label:'Report Data', req:true},
+  ];
+  let allOk=true;
+  fields.forEach(f=>{
+    const el=document.getElementById(f.id);
+    if(!el)return;
+    const parent=el.closest('.fld');
+    if(!parent)return;
+    // Remove old msg
+    const old=parent.querySelector('.fld-msg');
+    if(old)old.remove();
+    const val=el.value.trim();
+    const empty=!val||val==='';
+    if(f.req&&empty){
+      parent.classList.add('fld-err');
+      parent.classList.remove('fld-ok');
+      const msg=document.createElement('div');
+      msg.className='fld-msg';
+      msg.style.cssText='font-family:var(--mono);font-size:.52rem;color:var(--fail);margin-top:3px;letter-spacing:.5px;';
+      msg.textContent='⚠ Required';
+      parent.appendChild(msg);
+      allOk=false;
+    }else{
+      parent.classList.remove('fld-err');
+      if(!empty)parent.classList.add('fld-ok');
+      else parent.classList.remove('fld-ok');
+    }
+  });
+  // Update analyze button state
+  const btn=document.querySelector('button[onclick="runAnalysis()"]');
+  if(btn){
+    btn.style.opacity=allOk?'1':'.5';
+    btn.title=allOk?'':'Fill all required fields first';
+  }
+  return allOk;
+}
+
+function liveCheck(){
+  if(!CU||!(CU.role==='admin'||CU.role==='analyst'))return;
+  const name=document.getElementById('inp-name').value.trim();
+  const ba=document.getElementById('inp-ba').value;
+  const band=document.getElementById('inp-band').value;
+  const sector=document.getElementById('inp-sector').value;
+  const ind=document.getElementById('dup-ind');
+  if(!name){ind.style.display='none';return;}
+  const ex=findInCache(name,band,sector);
+  if(ex){
+    const hc=ex.health_pct>=85?'var(--ok)':ex.health_pct>=60?'var(--warn)':'var(--fail)';
+    document.getElementById('dup-ind-txt').innerHTML=
+      `<strong style="color:var(--text3)">${name}</strong> · <strong style="color:var(--text3)">${band}</strong> · Sector <strong style="color:var(--text3)">${sector}</strong>`+
+      ` &nbsp;|&nbsp; Last: <strong style="color:var(--text3)">${ex.report_dt}</strong>`+
+      ` &nbsp;|&nbsp; Health: <strong style="color:${hc}">${ex.health_pct}%</strong>`+
+      ` &nbsp;|&nbsp; By: <strong style="color:var(--text3)">${ex.by_name||'—'}</strong>`;
+    ind.style.display='block';
+  }else ind.style.display='none';
+}
+
+function viewExFromInd(){
+  const ex=findInCache(document.getElementById('inp-name').value.trim(),document.getElementById('inp-band').value,document.getElementById('inp-sector').value);
+  if(ex)openRecord(ex.id);
+}
+
+let pendFn=null,pendDupId=null;
+function showDupModal(ex,fn){
+  const hc=ex.health_pct>=85?'var(--ok)':ex.health_pct>=60?'var(--warn)':'var(--fail)';
+  document.getElementById('dup-id-txt').innerHTML=`<strong>${ex.enb_name}</strong> · <strong>${ex.band}</strong> · Sector <strong>${ex.sector}</strong>`;
+  document.getElementById('dup-det-rows').innerHTML=`
+    <div class="ddr"><span class="ddk">eNodeB</span><span class="ddv">${ex.enb_name}</span></div>
+    <div class="ddr"><span class="ddk">Band / Sector</span><span class="ddv">${ex.band} · Sector ${ex.sector}</span></div>
+    <div class="ddr"><span class="ddk">Last Analyzed</span><span class="ddv">${ex.report_dt}</span></div>
+    <div class="ddr"><span class="ddk">Analyzed By</span><span class="ddv">${ex.by_name||'—'}</span></div>
+    <div class="ddr"><span class="ddk">Health Score</span><span class="ddv" style="color:${hc};font-family:var(--sans);font-weight:800">${ex.health_pct}%</span></div>
+    <div class="ddr"><span class="ddk">Failures / Warnings</span><span class="ddv"><span class="cfl">${ex.fail_count} fail</span> · <span class="cwn">${ex.warn_count} warn</span></span></div>`;
+  pendFn=fn;pendDupId=ex.id;
+  document.getElementById('dup-ov').classList.add('open');
+}
+function closeDup(){document.getElementById('dup-ov').classList.remove('open');pendFn=null;pendDupId=null;toast('Cancelled — existing record preserved','','twrn');}
+function proceedUpdate(){document.getElementById('dup-ov').classList.remove('open');if(pendFn){pendFn();pendFn=null;pendDupId=null;}}
+function viewExFromDup(){document.getElementById('dup-ov').classList.remove('open');if(pendDupId){openRecord(pendDupId);pendFn=null;pendDupId=null;}}
+
+// ═══════════════════════════════════════
+// ANALYZE & SAVE
+// ═══════════════════════════════════════
+let curRec=null;
+
+function runAnalysis(){
+  if(!CU||!(CU.role==='admin'||CU.role==='analyst')){toast('View-only access — contact admin to upgrade your role','','terr');return;}
+  const name=document.getElementById('inp-name').value.trim();
+  const ba=(document.getElementById('inp-ba')&&document.getElementById('inp-ba').value)||'';
+  const band=document.getElementById('inp-band').value;
+  const sector=document.getElementById('inp-sector').value;
+  const dtInp=document.getElementById('inp-dt').value.trim();
+  const text=document.getElementById('paste-area').value.trim();
+  if(!name){toast('Enter eNodeB name first','','terr');return;}
+  if(!ba){toast('Select BA name first','','terr');return;}
+  if(!text){toast('Paste a report first','','terr');return;}
+  const rawData=parseReport(text);
+  if(!Object.keys(rawData).length){toast('No parameters found in report','','terr');return;}
+  const ex=findInCache(name,band,sector);
+  const doSave=async()=>{
+    const stats=analyzeData(rawData);
+    const dt=dtInp||new Date().toLocaleString();
+    const hco=stats.hp>=85?'var(--ok)':stats.hp>=60?'var(--warn)':'var(--fail)';
+    // Render results
+    document.getElementById('enb-bar').innerHTML=`
+      <div class="ei"><label>eNodeB</label><span>${name}</span></div><div class="esep"></div>
+      <div class="ei"><label>BA</label><span style="color:var(--warn)">${(document.getElementById('inp-ba')&&document.getElementById('inp-ba').value)||CU.ba_access||'ALL'}</span></div><div class="esep"></div>
+      <div class="ei"><label>Band</label><span>${band}</span></div><div class="esep"></div>
+      <div class="ei"><label>Sector</label><span>${sector}</span></div><div class="esep"></div>
+      <div class="ei"><label>Date</label><span>${dt}</span></div><div class="esep"></div>
+      <div class="ei"><label>Analyzed By</label><span>${CU.name}</span></div>
+    `;
+    renderSb(stats,'scoreboard');
+    renderAlert(stats,'alert-banner','alert-chips');
+    renderTables(rawData,stats.asmt,'tables-area');
+    document.getElementById('results').style.display='block';
+    document.getElementById('btn-export').style.display='inline-block';
+    document.getElementById('results').scrollIntoView({behavior:'smooth'});
+    // Build record
+    const recId=name+'_'+band+'_S'+sector;
+    let history=[];
+    if(ex){history=[...(ex.history||[])];history.unshift({dt:ex.report_dt,hp:ex.health_pct,fail:ex.fail_count,warn:ex.warn_count,by:ex.by_name});if(history.length>10)history=history.slice(0,10);}
+    const rec={id:recId,enb_name:name,band,sector,report_dt:dt,raw_data:rawData,health_pct:stats.hp,ok_count:stats.ok,warn_count:stats.warn,fail_count:stats.fail,known_count:stats.known,fail_items:stats.fi.map(i=>({key:i.key,label:i.label,raw:rawData[i.key],r:i.a.r})),warn_items:stats.wi.map(i=>({key:i.key,label:i.label,raw:rawData[i.key],r:i.a.r})),by_name:CU.name,by_username:CU.username,ba:(document.getElementById('inp-ba')&&document.getElementById('inp-ba').value)||CU.ba_access||'ALL',history,updated_at:new Date().toISOString()};
+    curRec=rec;
+    showLoader('Saving to cloud...');
+    try{
+      await SB.upsert('rrh_records',rec);
+      await loadAll();liveCheck();
+      toast(`Saved to cloud · ${ex?'Record updated':'New record'} · ${stats.known} params`);
+    }catch(e){toast('Save failed: '+e.message,'','terr');}
+    finally{hideLoader();}
+  };
+  if(ex)showDupModal(ex,doSave);else doSave();
+}
+
+function resetAnalyzeForm(){
+  // Reset all input fields
+  const nameEl=document.getElementById('inp-name');
+  const baEl=document.getElementById('inp-ba');
+  const bandEl=document.getElementById('inp-band');
+  const sectorEl=document.getElementById('inp-sector');
+  const dtEl=document.getElementById('inp-dt');
+  const textEl=document.getElementById('paste-area');
+  if(nameEl)nameEl.value='';
+  if(dtEl)dtEl.value='';
+  if(textEl)textEl.value='';
+  // Reset selects to first option
+  if(bandEl)bandEl.selectedIndex=0;
+  if(sectorEl)sectorEl.selectedIndex=0;
+  // BA field: lock if user has specific BA, else reset
+  if(baEl){
+    if(CU&&CU.ba_access&&CU.ba_access!=='ALL'){
+      baEl.value=CU.ba_access;
+      baEl.disabled=true;
+      baEl.style.opacity='.65';
+      baEl.style.cursor='not-allowed';
+      baEl.title='Locked to your BA: '+CU.ba_access;
+    }else{
+      baEl.value='';
+      baEl.disabled=false;
+      baEl.style.opacity='1';
+      baEl.style.cursor='pointer';
+      baEl.title='';
+    }
+  }
+  // Hide results + export
+  const res=document.getElementById('results');
+  if(res)res.style.display='none';
+  const exp=document.getElementById('btn-export');
+  if(exp)exp.style.display='none';
+  // Clear duplicate indicator
+  const ind=document.getElementById('dup-ind');
+  if(ind)ind.style.display='none';
+  // Clear all validation highlights
+  document.querySelectorAll('.fld-ok,.fld-err').forEach(el=>{
+    el.classList.remove('fld-ok','fld-err');
+  });
+  document.querySelectorAll('.fld-msg').forEach(el=>el.remove());
+  curRec=null;
+  // Run live validation to set initial state
+  setTimeout(()=>validateAnalyzeFields(),50);
+}
+
+function clearInput(){
+  resetAnalyzeForm();
+}
+
+
+// ═══════════════════════════════════════
+// RECORDS PAGE
+// ═══════════════════════════════════════
+function renderRecords(){
+  const srch=document.getElementById('srch').value.toLowerCase();
+  const fb=document.getElementById('fb').value;
+  const fh=document.getElementById('fh').value;
+  const fo=document.getElementById('fo').value;
+  const grid=document.getElementById('records-grid');
+
+  let recs=[...C.records];
+  // BA access filter: strict – non-ALL users see ONLY their own BA records
+  if(CU&&CU.ba_access&&CU.ba_access!=='ALL'){
+    recs=recs.filter(r=>r.ba===CU.ba_access);
+  }
+  // populate engineer filter
+  const engs=[...new Set(recs.map(r=>r.by_name||'Unknown'))];
+  const foEl=document.getElementById('fo');
+  const cur=foEl.value;
+  foEl.innerHTML='<option value="">All Engineers</option>'+engs.map(e=>`<option value="${e}"${e===cur?' selected':''}>${e}</option>`).join('');
+  if(srch)recs=recs.filter(r=>r.enb_name.toLowerCase().includes(srch));
+  if(fb)recs=recs.filter(r=>r.band===fb);
+  if(fo)recs=recs.filter(r=>(r.by_name||'Unknown')===fo);
+  if(fh)recs=recs.filter(r=>fh==='good'?r.health_pct>=85:fh==='med'?(r.health_pct>=60&&r.health_pct<85):r.health_pct<60);
+
+  // Update subtitle
+  const sub=document.getElementById('rec-sub');
+  if(sub)sub.textContent=recs.length+' record'+(recs.length!==1?'s':'')+(CU.ba_access&&CU.ba_access!=='ALL'?' · '+CU.ba_access:' · Fleet');
+
+  if(!recs.length){
+    grid.innerHTML=`<div class="empty"><div class="empty-i">📡</div><div class="empty-t">No Records Found</div><div class="empty-s">${CU.role==='admin'?'Analyze a report to create the first record':'No records available for your current filters'}</div></div>`;
+    return;
+  }
+
+  const isAdmin=CU.role==='admin';
+  const canWrite=CU.role==='admin'||CU.role==='analyst';
+
+  const rows=recs.map(r=>{
+    const hco=r.health_pct>=85?'var(--ok)':r.health_pct>=60?'var(--warn)':'var(--fail)';
+    const sdg=r.health_pct>=85?'dok2':r.health_pct>=60?'dwn2':'dfl2';
+    const slbl=r.health_pct>=85?'Healthy':r.health_pct>=60?'Warning':'Critical';
+    const fi=r.fail_items||[],wi=r.warn_items||[];
+    const issueChips=[
+      ...fi.slice(0,2).map(i=>`<span class="chip cf">${i.label}</span>`),
+      ...wi.slice(0,1).map(i=>`<span class="chip cw">${i.label}</span>`)
+    ].join('');
+    const moreIssues=(fi.length+wi.length)>3?`<span class="chip" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border2)">+${fi.length+wi.length-3} more</span>`:'';
+    const initials=r.by_name?r.by_name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2):'?';
+    const baTag=r.ba&&r.ba!=='ALL'?`<span style="font-family:var(--mono);font-size:.52rem;color:var(--cyan);background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.2);padding:1px 5px;border-radius:3px;margin-left:5px">${r.ba}</span>`:'';
+
+    return`<tr onclick="openRecord('${r.id}')">
+      <td>
+        <span class="sbdg ${sdg}">${slbl}</span>
+      </td>
+      <td>
+        <div class="rt-name">${r.enb_name}${baTag}</div>
+        <div class="rt-sub" style="font-family:var(--mono)">${r.band} · Sector ${r.sector}</div>
+      </td>
+      <td>
+        <div class="hp-cell">
+          <div class="hp-num" style="color:${hco}">${r.health_pct}%</div>
+          <div class="hp-bar"><div class="hp-fill" style="width:${r.health_pct}%;background:${hco}"></div></div>
+        </div>
+      </td>
+      <td>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;max-width:200px">
+          ${issueChips||'<span style="font-size:.62rem;color:var(--ok)">✓ All OK</span>'}
+          ${moreIssues}
+        </div>
+      </td>
+      <td>
+        <div style="font-family:var(--mono);font-size:.68rem;color:var(--text2)">${r.report_dt||'—'}</div>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:22px;height:22px;border-radius:50%;background:var(--blue-dim);border:1px solid var(--blue-glow);display:flex;align-items:center;justify-content:center;font-size:.52rem;font-weight:800;color:var(--blue);flex-shrink:0">${initials}</div>
+          <span style="font-size:.68rem;color:var(--text2)">${r.by_name||'—'}</span>
+        </div>
+      </td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap">
+        <div class="act-row">
+          <button class="ibtn" title="View" onclick="openRecord('${r.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </button>
+          ${canWrite?`<button class="ibtn" title="Re-Analyze" onclick="reAnalyze('${r.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>`:''}
+          <button class="ibtn" title="Export to Excel" onclick="exportRecCSV('${r.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          ${isAdmin?`<button class="ibtn del" title="Delete Record" onclick="confirmDel('${r.id}','${r.enb_name}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>`:''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  grid.innerHTML=`
+    <div class="rec-table-wrap">
+      <table class="rec-table">
+        <thead>
+          <tr>
+            <th style="width:100px">Status</th>
+            <th>eNodeB Name</th>
+            <th style="width:160px">Health</th>
+            <th>Issues</th>
+            <th style="width:110px">Report Date</th>
+            <th style="width:130px">Analyzed By</th>
+            <th style="width:160px;text-align:center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="tfoot">
+        <span>${recs.length} record${recs.length!==1?'s':''} ${CU.ba_access&&CU.ba_access!=='ALL'?'in '+CU.ba_access:''}</span>
+        <div></div>
+      </div>
+    </div>`;
+}
+
+function openRecord(id){
+  const r=C.records.find(x=>x.id===id);if(!r)return;
+  document.getElementById('mot').textContent=r.enb_name+' · '+r.band+' · Sector '+r.sector;
+  const stats=analyzeData(r.raw_data||{});
+  const hco=stats.hp>=85?'var(--ok)':stats.hp>=60?'var(--warn)':'var(--fail)';
+  let hist='';
+  if(r.history&&r.history.length){
+    hist=`<div class="sh" style="margin-top:14px"><h2>⬡ Health History</h2></div>
+    <div class="tw"><table><thead><tr><th>Date/Time</th><th>Health %</th><th>Failures</th><th>Warnings</th><th>By</th></tr></thead><tbody>
+    ${r.history.map(h=>`<tr><td>${h.dt}</td><td><span style="color:${h.hp>=85?'var(--ok)':h.hp>=60?'var(--warn)':'var(--fail)'};font-weight:700">${h.hp}%</span></td><td class="cfl">${h.fail||0}</td><td class="cwn">${h.warn||0}</td><td style="color:var(--text2)">${h.by||'—'}</td></tr>`).join('')}
+    </tbody></table></div>`;
+  }
+  document.getElementById('mob').innerHTML=`
+    <div class="eb" style="margin-bottom:11px">
+      <div class="ei"><label>eNodeB</label><span>${r.enb_name}</span></div><div class="esep"></div>
+      <div class="ei"><label>Band</label><span>${r.band}</span></div><div class="esep"></div>
+      <div class="ei"><label>Sector</label><span>${r.sector}</span></div><div class="esep"></div>
+      <div class="ei"><label>Last Updated</label><span>${r.report_dt}</span></div><div class="esep"></div>
+      <div class="ei"><label>Analyzed By</label><span>${r.by_name||'—'}</span></div><div class="esep"></div>
+      <div class="ei"><label>Health</label><span style="color:${hco}">${stats.hp}%</span></div>
+    </div>
+    <div id="msb"></div>
+    <div class="abn ${stats.fi.length||stats.wi.length?'show':''}" style="margin-bottom:11px">
+      <div class="abn-t">⚠ Parameters Requiring Attention</div>
+      <div class="chips">${[...stats.fi.map(i=>`<span class="chip cf">${i.label}</span>`),...stats.wi.map(i=>`<span class="chip cw">${i.label}</span>`)].join('')}</div>
+    </div>
+    <div id="mtbl"></div>${hist}
+    <div class="br" style="margin-top:11px">
+      <button class="btn bo bsm" onclick="exportRecCSV('${id}')">⬡ EXPORT CSV</button>
+    </div>`;
+  renderSb(stats,'msb');
+  renderTables(r.raw_data||{},stats.asmt,'mtbl');
+  document.getElementById('mo').classList.add('open');
+}
+
+function reAnalyze(id){
+  if(!(CU.role==='admin'||CU.role==='analyst')){toast('View-only access — cannot re-analyze','','terr');return;}
+  const r=C.records.find(x=>x.id===id);if(!r)return;
+  const raw=Object.entries(r.raw_data||{}).map(([k,v])=>k.padEnd(25)+'=  '+v).join('\n');
+  document.getElementById('inp-name').value=r.enb_name;
+  document.getElementById('inp-band').value=r.band;
+  document.getElementById('inp-sector').value=r.sector;
+  const baEl=document.getElementById('inp-ba');
+  if(baEl&&!baEl.disabled)baEl.value=r.ba||CU.ba_access||'';
+  document.getElementById('paste-area').value=raw;
+  showPage('analyze');liveCheck();
+  toast('Report loaded — paste new data and re-analyze');
+}
+
+function closeMoEv(e){if(e.target===document.getElementById('mo'))closeMo();}
+function closeMo(){document.getElementById('mo').classList.remove('open');}
+
+// ═══════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════
+function renderDashboard(){
+  const recs=(CU&&CU.ba_access&&CU.ba_access!=='ALL')
+    ?C.records.filter(r=>!r.ba||r.ba==='ALL'||r.ba===CU.ba_access)
+    :C.records;
+  const area=document.getElementById('dash-content');
+  if(!recs.length){
+    area.innerHTML='<div class="empty"><div class="empty-i">⬡</div><div class="empty-t">No Data Yet</div><div class="empty-s">Admin must analyze and save reports to populate the dashboard</div></div>';
+    return;
+  }
+  const avg=Math.round(recs.reduce((s,r)=>s+r.health_pct,0)/recs.length);
+  const crit=recs.filter(r=>r.health_pct<60).length,wrns=recs.filter(r=>r.health_pct>=60&&r.health_pct<85).length,hlth=recs.filter(r=>r.health_pct>=85).length;
+  const pf={},pw={};
+  for(const r of recs){for(const f of(r.fail_items||[]))pf[f.label]=(pf[f.label]||0)+1;for(const w of(r.warn_items||[]))pw[w.label]=(pw[w.label]||0)+1;}
+  const tf=Object.entries(pf).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const tw=Object.entries(pw).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const sorted=[...recs].sort((a,b)=>a.health_pct-b.health_pct);
+  area.innerHTML=`
+    <div class="dg3">
+      <div class="dc"><div class="dct">Total Records</div><div class="dn">${recs.length}</div><div class="ds">${hlth} healthy · ${wrns} warning · ${crit} critical</div></div>
+      <div class="dc"><div class="dct">Average Health</div><div class="dn" style="color:${avg>=85?'var(--ok)':avg>=60?'var(--warn)':'var(--fail)'}">${avg}%</div><div class="gw" style="margin-top:7px"><div class="gf" style="width:${avg}%;background:${avg>=85?'var(--ok)':avg>=60?'var(--warn)':'var(--fail)'}"></div></div></div>
+      <div class="dc"><div class="dct">Sites Needing Attention</div><div class="dn" style="color:var(--fail)">${crit+wrns}</div><div class="ds">${crit} critical · ${wrns} with warnings</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:12px">
+      <div class="dc"><div class="dct">Top Failing Parameters</div>${tf.length?`<div class="il">${tf.map(([l,c])=>`<div class="ir irf"><div><div class="iname">${l}</div><div class="isite">Failing at ${c} site(s)</div></div><div class="icnt">${c}</div></div>`).join('')}</div>`:'<div style="font-size:.63rem;color:var(--ok);margin-top:7px">✓ No critical failures</div>'}</div>
+      <div class="dc"><div class="dct">Top Warning Parameters</div>${tw.length?`<div class="il">${tw.map(([l,c])=>`<div class="ir irw"><div><div class="iname">${l}</div><div class="isite">Warning at ${c} site(s)</div></div><div class="icnt">${c}</div></div>`).join('')}</div>`:'<div style="font-size:.63rem;color:var(--ok);margin-top:7px">✓ No warnings</div>'}</div>
+    </div>
+    <div class="dc"><div class="dct">eNodeB Health Ranking (lowest → highest)</div>
+    <div class="bc" style="margin-top:7px">${sorted.map(r=>`<div class="brow"><div class="blbl" title="${r.enb_name} ${r.band} S${r.sector}">${r.enb_name} ${r.band} S${r.sector}</div><div class="btrk"><div class="bfil ${r.health_pct>=85?'bfok':r.health_pct>=60?'bfwn':'bffl'}" style="width:${r.health_pct}%"></div></div><div class="bval">${r.health_pct}%</div></div>`).join('')}</div></div>`;
+}
+
+// ═══════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════
+// Clean special unicode chars that corrupt in Excel
+function cleanStr(s){
+  if(s===null||s===undefined)return'';
+  let v=String(s);
+  // 1. Pre-clean: mojibake patterns that arrive from DB (UTF-8 bytes mis-decoded as Latin-1/cp1252)
+  //    em-dash  (U+2014) stored as 3 bytes â mis-decoded → â€"
+  v=v.replace(/â€”/g,'-')   // â€" (em-dash mojibake variant 1)
+     .replace(/â€/g,'-')   // â€" (variant 2 - control char mid)
+     .replace(/â€“/g,'-')   // â€" (variant 3)
+     .replace(/â€„/g,'-')   // â€ž
+     .replace(/â€˜/g,"'")   // â€˜ (left single quote mojibake)
+     .replace(/â€™/g,"'")   // â€™ (right single quote mojibake)
+     .replace(/â€œ/g,'"')   // â€œ (left double quote mojibake)
+     .replace(/â€�/g,'-')   // catch-all em-dash mojibake
+     .replace(/â€["""''–—-ÿ]/g,'-')  // broad catch for â€ + any following char
+     .replace(/Ã‚Â°/g,' deg').replace(/Ã‚Â±/g,'+/-');  // degree / plusminus mojibake
+  // 2. Real Unicode → ASCII substitutions
+  v=v.replace(/[‒–—―−]/g,'-')   // all dash variants
+     .replace(/←/g,'<-').replace(/↑/g,'^').replace(/→/g,'->').replace(/↓/g,'v')
+     .replace(/≤/g,'<=').replace(/≥/g,'>=').replace(/≠/g,'!=').replace(/±/g,'+/-')
+     .replace(/°/g,' deg').replace(/μ/g,'u').replace(/Ω/g,'Ohm')
+     .replace(/[‘’]/g,"'").replace(/[“”]/g,'"')
+     .replace(/[-]/g,'')  // control chars
+     .replace(/[^\x20-\x7e]/g, c => {
+       const map={'°':' deg','±':'+/-','×':'x','÷':'/','µ':'u','Ω':'Ohm','α':'alpha','β':'beta',
+                  '–':'-','—':'-','â':''};
+       return (map[c]||'').replace(/[^\x20-\x7e]/g,'');
+     });
+  return v.trim();
+}
+
+function safeVal(v){
+  if(v===null||v===undefined)return'';
+  if(typeof v==='number')return v;
+  if(typeof v==='boolean')return v?1:0;
+  return cleanStr(String(v));
+}
+
+function exportRecCSV(id){
+  const r=C.records.find(x=>x.id===id);if(!r)return;
+  if(typeof XLSX==='undefined'){toast('Excel library still loading, try again in 2 seconds','','twrn');return;}
+  const wb=XLSX.utils.book_new();
+  const fails=r.fail_items||[];
+  const warns=r.warn_items||[];
+
+  // ── Sheet 1: Summary ──
+  const sumRows=[
+    ['TEJAS RRH HEALTH REPORT','','',''],
+    ['','','',''],
+    ['eNodeB Name',safeVal(r.enb_name),'Band',safeVal(r.band)],
+    ['Sector',safeVal(r.sector),'Report Date',safeVal(r.report_dt)],
+    ['Analyzed By',safeVal(r.by_name||'N/A'),'Health Score',(r.health_pct||0)+'%'],
+    ['BA / Business Area',safeVal(r.ba||'ALL'),'',''],
+    ['OK Parameters',r.ok_count||0,'Warnings',r.warn_count||0],
+    ['Failures',r.fail_count||0,'',''],
+    ['','','',''],
+  ];
+  if(fails.length){
+    sumRows.push(['FAILED PARAMETERS ('+fails.length+')','','','','']);
+    sumRows.push(['Parameter','Measured Value','Unit','Normal Range','Recommendation']);
+    for(const fi of fails){
+      const def=PD[fi.key]||{};
+      const unit=safeVal(def.u||'');
+      const rngLow=def.ok&&def.f!=='bool'&&def.f!=='str'?def.ok[0]:'';
+      const rngHigh=def.ok&&def.f!=='bool'&&def.f!=='str'?def.ok[1]:'';
+      const rngStr=rngLow!==''?(rngLow+' to '+rngHigh+(unit?' '+unit:'')):'';
+      const rawNum=(fi.raw!==null&&fi.raw!==undefined&&fi.raw!==''&&!isNaN(Number(fi.raw)))?Number(fi.raw):safeVal(fi.raw);
+      sumRows.push([safeVal(fi.label),rawNum,unit,rngStr,safeVal(fi.r)]);
+    }
+    sumRows.push(['','','','','']);
+  }
+  if(warns.length){
+    sumRows.push(['WARNING PARAMETERS ('+warns.length+')','','','','']);
+    sumRows.push(['Parameter','Measured Value','Unit','Normal Range','Recommendation']);
+    for(const wi of warns){
+      const def=PD[wi.key]||{};
+      const unit=safeVal(def.u||'');
+      const rngLow=def.ok&&def.f!=='bool'&&def.f!=='str'?def.ok[0]:'';
+      const rngHigh=def.ok&&def.f!=='bool'&&def.f!=='str'?def.ok[1]:'';
+      const rngStr=rngLow!==''?(rngLow+' to '+rngHigh+(unit?' '+unit:'')):'';
+      const rawNum=(wi.raw!==null&&wi.raw!==undefined&&wi.raw!==''&&!isNaN(Number(wi.raw)))?Number(wi.raw):safeVal(wi.raw);
+      sumRows.push([safeVal(wi.label),rawNum,unit,rngStr,safeVal(wi.r)]);
+    }
+    sumRows.push(['','','','','']);
+  }
+  const ws1=XLSX.utils.aoa_to_sheet(sumRows);
+  ws1['!cols']=[{wch:36},{wch:18},{wch:8},{wch:22},{wch:55}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Summary');
+
+  // ── Sheet 2: All Parameters (FAIL first, then WARN, then OK) ──
+  const detRows=[['Parameter','Group','Description','Measured Value','Unit','Range Low','Range High','Status','Recommendation']];
+  const allKeys=Object.keys(r.raw_data||{});
+  const failKeys=fails.map(f=>f.key);
+  const warnKeys=warns.map(w=>w.key);
+  const orderedKeys=[...failKeys,...warnKeys,...allKeys.filter(k=>!failKeys.includes(k)&&!warnKeys.includes(k))];
+  for(const key of orderedKeys){
+    if(!(key in (r.raw_data||{})))continue;
+    const val=r.raw_data[key];
+    const def=PD[key];if(!def)continue;
+    const a=assess(key,val);
+    const unit=safeVal(def.u||'');
+    const rngLow=def.ok&&def.f!=='bool'&&def.f!=='str'?def.ok[0]:'';
+    const rngHigh=def.ok&&def.f!=='bool'&&def.f!=='str'?def.ok[1]:'';
+    const rawNum=(val!==null&&val!==undefined&&val!==''&&!isNaN(Number(val)))?Number(val):safeVal(val);
+    detRows.push([safeVal(def.l),safeVal(def.g),safeVal(def.d),rawNum,unit,rngLow,rngHigh,safeVal(a.s),safeVal(a.r||'')]);
+  }
+  const ws2=XLSX.utils.aoa_to_sheet(detRows);
+  ws2['!cols']=[{wch:30},{wch:16},{wch:44},{wch:16},{wch:8},{wch:12},{wch:12},{wch:10},{wch:55}];
+  ws2['!freeze']={xSplit:0,ySplit:1,topLeftCell:'A2',activePane:'bottomLeft'};
+  XLSX.utils.book_append_sheet(wb,ws2,'All Parameters');
+
+  const safeName=safeVal(r.enb_name).replace(/[^a-zA-Z0-9_]/g,'_');
+  const fname=safeName+'_'+safeVal(r.band)+'_S'+r.sector+'_'+safeVal(r.report_dt)+'.xlsx';
+  XLSX.writeFile(wb,fname,{compression:false,bookType:'xlsx'});
+  toast('Excel exported: '+fname.slice(0,45));
+}
+function exportCurrentCSV(){if(curRec)exportRecCSV(curRec.id);}
+
+function exportAllCSV(){
+  const recs=C.records;
+  if(!recs.length){toast('No records to export','','terr');return;}
+  if(typeof XLSX==='undefined'){toast('Excel library still loading, try again','','twrn');return;}
+  const wb=XLSX.utils.book_new();
+  const rows=[['eNodeB','BA','Band','Sector','Report Date','Health %','OK','Warnings','Failures','Analyzed By','Failed Parameters','Warning Parameters']];
+  for(const r of recs){
+    rows.push([
+      safeVal(r.enb_name),safeVal(r.ba||'ALL'),safeVal(r.band),safeVal(r.sector),safeVal(r.report_dt),
+      r.health_pct||0,r.ok_count||0,r.warn_count||0,r.fail_count||0,
+      safeVal(r.by_name),
+      (r.fail_items||[]).map(i=>safeVal(i.label)).join('; '),
+      (r.warn_items||[]).map(i=>safeVal(i.label)).join('; ')
+    ]);
+  }
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:22},{wch:12},{wch:7},{wch:8},{wch:13},{wch:10},{wch:6},{wch:9},{wch:9},{wch:22},{wch:55},{wch:55}];
+  ws['!freeze']={xSplit:0,ySplit:1,topLeftCell:'A2',activePane:'bottomLeft'};
+  XLSX.utils.book_append_sheet(wb,ws,'Fleet Report');
+  XLSX.writeFile(wb,'Tejas_RRH_Fleet_'+new Date().toISOString().slice(0,10)+'.xlsx',{compression:false,bookType:'xlsx'});
+  toast('Fleet Excel report exported ('+recs.length+' records)');
+}
+
+function dlFile(c,n,t){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:t}));a.download=n;a.click();}
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const t=document.getElementById('tab-'+name);
+  if(t)t.classList.add('active');
+  if(name==='records')renderRecords();
+  if(name==='dashboard')renderDashboard();
+  if(name==='admin'){swAdmTab('requests');updPB();}
+  // ── Always reset analyze form when navigating to it ──
+  if(name==='analyze'){
+    resetAnalyzeForm();
+  }
+}
+
+// ═══════════════════════════════════════
+// CONFIRM & TOAST
+// ═══════════════════════════════════════
+let cfmCb=null;
+function showConfirm(title,msg,cb){
+  document.getElementById('cfmt').textContent=title;
+  document.getElementById('cfmm').textContent=msg;
+  cfmCb=cb;document.getElementById('cfmb').classList.add('open');
+}
+document.getElementById('cfmok').addEventListener('click',()=>{if(cfmCb)cfmCb();closeCfm();});
+function closeCfm(){document.getElementById('cfmb').classList.remove('open');cfmCb=null;}
+
+function confirmDel(id,name){
+  if(CU.role!=='admin'){toast('View-only — cannot delete','','terr');return;}
+  showConfirm('Delete Record','Delete record for "'+name+'"? Cannot be undone.',async()=>{
+    showLoader('Deleting...');
+    try{await SB.del('rrh_records','id=eq.'+encodeURIComponent(id));await loadAll();renderRecords();liveCheck();toast('Record deleted ✓');}
+    catch(e){toast('Error: '+e.message,'','terr');}
+    finally{hideLoader();}
+  });
+}
+function confirmDeleteAll(){
+  if(CU.role!=='admin'){toast('View-only','','terr');return;}
+  showConfirm('Delete ALL Records','Delete every record permanently? Cannot be undone.',async()=>{
+    showLoader('Deleting all...');
+    try{
+      // Supabase requires a filter for DELETE — health_pct>=0 matches all records
+      await fetch(SB.url+'/rest/v1/rrh_records?health_pct=gte.0',{method:'DELETE',headers:SB.hdr()});
+      await loadAll();renderRecords();toast('All records deleted');
+    }catch(e){toast('Error: '+e.message,'','terr');}
+    finally{hideLoader();}
+  });
+}
+
+function toast(msg,_,cls=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=cls;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+// Set default date
+const dtEl=document.getElementById('inp-dt');
+if(dtEl)dtEl.value=new Date().toLocaleString();
+</script>
+</body>
+</html>
