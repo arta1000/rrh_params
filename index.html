@@ -1196,6 +1196,10 @@ CREATE POLICY "app_access" ON rrh_records  FOR ALL TO anon USING (true) WITH CHE
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
         Export
       </button>
+      <button class="btn bpurple" id="btn-diagnose" style="display:none" onclick="openDiagnose()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6" stroke-linecap="round"/></svg>
+        ⬡ AI Diagnose
+      </button>
     </div>
   </div>
   <div class="card" style="margin-bottom:14px">
@@ -2388,6 +2392,9 @@ function runAnalysis(){
     renderTables(rawData,stats.asmt,'tables-area');
     document.getElementById('results').style.display='block';
     document.getElementById('btn-export').style.display='inline-block';
+    // Show diagnose button only when there are failures or warnings
+    const diagBtn=document.getElementById('btn-diagnose');
+    if(diagBtn)diagBtn.style.display=(stats.fi.length||stats.wi.length)?'inline-flex':'none';
     document.getElementById('results').scrollIntoView({behavior:'smooth'});
     // Build record
     const recId=name+'_'+band+'_S'+sector;
@@ -2441,6 +2448,8 @@ function resetAnalyzeForm(){
   if(res)res.style.display='none';
   const exp=document.getElementById('btn-export');
   if(exp)exp.style.display='none';
+  const diagB=document.getElementById('btn-diagnose');
+  if(diagB)diagB.style.display='none';
   // Clear duplicate indicator
   const ind=document.getElementById('dup-ind');
   if(ind)ind.style.display='none';
@@ -2872,6 +2881,394 @@ function toast(msg,_,cls=''){
 // Set default date
 const dtEl=document.getElementById('inp-dt');
 if(dtEl)dtEl.value=new Date().toLocaleString();
+
+// ═══════════════════════════════════════════════════════════════
+// AI DIAGNOSIS ENGINE — Tejas TJ1400-7 RRH Fault Analysis
+// ═══════════════════════════════════════════════════════════════
+
+const TEJAS_SYSTEM_PROMPT = `You are an expert Tejas Networks TJ1400-7 LTE eNodeB field engineer with deep knowledge of RRH fault diagnosis and rectification.
+
+You have complete knowledge of the Tejas EMCLI command set:
+
+MAIN COMMANDS:
+- Show Alarm CurrentAlarm — Display all raised alarms
+- Show Alarm HistoryEvent — Display history of raised alarms
+- Show Status — Get current eNB status
+- Show Rrh_Status Cell_0/Cell_1/Cell_2 — RRH status per sector
+- Show Rrh_GetConfig Cell_0/Cell_1/Cell_2 — RRH configuration per sector
+- Show Temperature — Card temperature
+- Show FAN_Status0 / Show FAN_Status1 — Fan status
+- Show GpsStatus — GPS lock status
+- Show S1AP_Status — S1AP link status
+- Show Interface — Network interface details
+- Show Config CellConfig — Cell configuration
+- Show Config MME — MME gateway parameters
+- Show Config NTP — NTP server parameters
+- Show Config DeviceInfo — Device hardware info
+- Show Config Clocksource — Clock source config
+- Show Log — System logs
+- Show Version_Info — Software version
+- Show Package_Name — Running package
+- Show Inventory — Hardware inventory
+- Show RETScan Cell_0/Cell_1/Cell_2 — RET antenna tilt scan
+- Show GetTilt Cell_0/Cell_1/Cell_2 — Get antenna tilt value
+- RRH UploadLog — Upload RRH logs
+- RRH GetAlarm Cell_0/Cell_1/Cell_2 — Get RRH alarms
+- RRH GetAlarmCapability Cell_0/Cell_1/Cell_2 — Alarm capability
+- RRH Reboot Cell_0/Cell_1/Cell_2 — Reboot RRH
+- RRH GetRRHRebootReason Cell_0/Cell_1/Cell_2 — Reboot reason
+- Reset — Reset stats
+- ResetKpiStats — Reset KPI stats
+- ResetS1LinkStats — Reset S1 link stats
+- S1LinkStats — S1 link statistics
+- CellMgmt — Cell start operation
+- CellMgmt Start_Sec 0/1/2 — Start sector
+- CellMgmt Restart_Sec 0/1/2 — Restart sector
+- CellMgmt Delete_Sec 0/1/2 — Delete sector
+- ProtocolRestart — Restart eNodeB protocol
+- Restart — Restart eNodeB system
+- SFP Status — SFP transceiver status
+- SFP Inventory — SFP inventory
+- Config Clocksource — Configure clock source
+- Config MME — Set MME IP
+- Config NTP — Set NTP server
+- Config CellConfig — Configure cell parameters
+
+KEY PARAMETERS TO DIAGNOSE (from RRH report):
+- mErrored: Hardware error count (should be 0)
+- tx_status0/1/2: Transmitter status (1=active, 0=fault)
+- tx_power0/1/2: TX power in dBm (typical: 35-43 dBm)
+- VSWR_0/1/2: Voltage Standing Wave Ratio (good: <1.5, warn: 1.5-2.0, fail: >2.0)
+- rx_power0/1/2: RX power in dBm (typical: -60 to -40 dBm)
+- temperature: RRH temperature (warn: >55°C, fail: >65°C)
+- voltage_input: Supply voltage (typical: 48V DC, warn: <44V or >52V)
+- current_consumption: Current draw (warn if abnormally high)
+- cpri_status: CPRI link status (1=up, 0=down)
+- lock_status: PLL lock (1=locked, 0=unlocked)
+- pa_status: Power amplifier status
+- alarm_status: Active alarm flags
+
+PHYSICAL CHECKS include:
+- Antenna connector inspection (PIM, loose connections)
+- Feeder cable visual check (damage, water ingress)
+- Power supply cable and connector check
+- CPRI fiber inspection (bend radius, connector cleanliness)
+- RRH mounting and grounding check
+- Cooling fins obstruction check
+- LED status interpretation
+
+RESPONSE FORMAT:
+Use these exact markers for structured output:
+##H1## for main section headers
+##H2## for subsection headers  
+##CMD## prefix for CLI commands (one per line)
+##NOTE## prefix for warnings/notes
+##STEP## prefix for numbered steps (auto-numbered)
+##OK## for normal/good indicators
+##WARN## for warning indicators
+##FAIL## for failure indicators
+
+Be specific, practical, and give exact commands. Always reference sector numbers (Cell_0/Cell_1/Cell_2) based on the sector in the report. Prioritize safety steps first.`;
+
+let _diagCurrentText = '';
+let _diagAbortCtrl = null;
+let _diagStats = null;
+let _diagMeta = null;
+
+function openDiagnose(){
+  if(!curRec){toast('Run analysis first','','terr');return;}
+  _diagStats = curRec;
+  _diagCurrentText = '';
+  
+  // Build issue summary chips
+  const sumEl = document.getElementById('diag-summary');
+  const chips = [
+    ...(curRec.fail_items||[]).map(i=>`<span style="font-family:var(--mono);font-size:.58rem;background:rgba(255,45,85,.08);border:1px solid rgba(255,45,85,.25);color:var(--fail);padding:3px 9px;border-radius:2px;">✕ ${i.label}</span>`),
+    ...(curRec.warn_items||[]).map(i=>`<span style="font-family:var(--mono);font-size:.58rem;background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.25);color:var(--warn);padding:3px 9px;border-radius:2px;">⚠ ${i.label}</span>`)
+  ];
+  sumEl.innerHTML = chips.length
+    ? `<div style="font-family:var(--mono);font-size:.56rem;color:var(--muted);letter-spacing:1px;width:100%;margin-bottom:4px;">DETECTED ISSUES (${chips.length})</div>` + chips.join('')
+    : '<span style="font-family:var(--mono);font-size:.62rem;color:var(--ok);">✓ No critical issues detected — general health check available</span>';
+
+  // Build prompt preview
+  const sector = curRec.sector || '0';
+  const cellRef = `Cell_${parseInt(sector)-1 >= 0 ? parseInt(sector)-1 : 0}`;
+  document.getElementById('diag-prompt-preview').textContent =
+    `eNodeB: ${curRec.enb_name} · BA: ${curRec.ba||'—'} · Band: ${curRec.band} · Sector: ${curRec.sector} · Health: ${curRec.health_pct}% · ${(curRec.fail_items||[]).length} failures, ${(curRec.warn_items||[]).length} warnings`;
+  document.getElementById('diag-subtitle').textContent =
+    `${curRec.enb_name} · ${curRec.band} · Sector ${curRec.sector} · ${cellRef}`;
+
+  // Reset response area
+  document.getElementById('diag-response').style.display = 'none';
+  document.getElementById('diag-streaming').innerHTML = '';
+  document.getElementById('diag-cursor').style.display = 'inline-block';
+  document.getElementById('diag-copy-btn').style.display = 'none';
+  document.getElementById('diag-ask').style.display = 'block';
+  
+  // Show modal
+  const modal = document.getElementById('diag-modal');
+  modal.style.display = 'flex';
+  modal.scrollTop = 0;
+}
+
+function closeDiagnose(){
+  document.getElementById('diag-modal').style.display = 'none';
+  if(_diagAbortCtrl){ _diagAbortCtrl.abort(); _diagAbortCtrl = null; }
+}
+
+async function runDiagnosis(mode){
+  if(!_diagStats) return;
+  
+  // Disable buttons during streaming
+  ['diag-btn-full','diag-btn-quick','diag-btn-physical'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.disabled=true;el.style.opacity='.5';}
+  });
+
+  document.getElementById('diag-ask').style.display = 'none';
+  document.getElementById('diag-response').style.display = 'block';
+  document.getElementById('diag-streaming').innerHTML = '';
+  document.getElementById('diag-cursor').style.display = 'inline-block';
+  document.getElementById('diag-copy-btn').style.display = 'none';
+  _diagCurrentText = '';
+
+  const rec = _diagStats;
+  const sector = parseInt(rec.sector||'1');
+  const cellRef = `Cell_${Math.max(0,sector-1)}`;
+  const failList = (rec.fail_items||[]).map(i=>`- ${i.label}: measured=${i.raw}, expected range=${JSON.stringify(i.r)}`).join('\n');
+  const warnList = (rec.warn_items||[]).map(i=>`- ${i.label}: measured=${i.raw}, expected range=${JSON.stringify(i.r)}`).join('\n');
+
+  let userMsg = '';
+  if(mode==='full'){
+    userMsg = `Analyze this Tejas TJ1400-7 RRH report and provide complete diagnosis with step-by-step rectification:
+
+eNodeB: ${rec.enb_name}
+BA: ${rec.ba||'N/A'}
+Band: ${rec.band}
+Sector: ${rec.sector} (use ${cellRef} in commands)
+Health Score: ${rec.health_pct}%
+Report Date: ${rec.report_dt}
+Analyzed By: ${rec.by_name}
+
+FAILURES (${(rec.fail_items||[]).length}):
+${failList||'None'}
+
+WARNINGS (${(rec.warn_items||[]).length}):
+${warnList||'None'}
+
+Provide:
+1. Root cause analysis for each failure and warning
+2. Step-by-step CLI commands to diagnose (use exact ${cellRef} references)
+3. Physical inspection checklist
+4. Rectification procedure (commands + actions)
+5. Verification commands to confirm fix
+6. Preventive maintenance recommendations`;
+  } else if(mode==='quick'){
+    userMsg = `Give me the quick diagnostic CLI commands for this Tejas TJ1400-7 eNodeB issue:
+
+eNodeB: ${rec.enb_name}, ${rec.band}, Sector ${rec.sector} (${cellRef})
+FAILURES: ${failList||'None'}
+WARNINGS: ${warnList||'None'}
+
+List ONLY the essential EMCLI commands to run first, in order, with brief explanation of what each output tells you.`;
+  } else {
+    userMsg = `Provide a physical inspection checklist for this Tejas TJ1400-7 RRH issue:
+
+eNodeB: ${rec.enb_name}, ${rec.band}, Sector ${rec.sector}
+FAILURES: ${failList||'None'}
+WARNINGS: ${warnList||'None'}
+
+List step-by-step physical checks a field engineer must perform on-site, including safety precautions, what to look for, and what tools are needed.`;
+  }
+
+  try {
+    _diagAbortCtrl = new AbortController();
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: _diagAbortCtrl.signal,
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        system: TEJAS_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userMsg }],
+        stream: true
+      })
+    });
+
+    if(!resp.ok){
+      const err = await resp.json();
+      renderDiagText(`\n⚠ API Error: ${err.error?.message||resp.status}\n\nEnsure you are accessing this page through a platform that provides the Anthropic API key.`);
+      finishDiag();
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while(true){
+      const {done, value} = await reader.read();
+      if(done) break;
+      buffer += decoder.decode(value, {stream:true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if(data==='[DONE]') continue;
+        try{
+          const ev = JSON.parse(data);
+          if(ev.type==='content_block_delta'&&ev.delta?.type==='text_delta'){
+            _diagCurrentText += ev.delta.text;
+            renderDiagText(_diagCurrentText);
+          }
+        }catch(e){}
+      }
+    }
+  } catch(e){
+    if(e.name!=='AbortError'){
+      renderDiagText(`\n⚠ Connection error: ${e.message}`);
+    }
+  }
+  finishDiag();
+}
+
+function renderDiagText(raw){
+  // Convert markers to styled HTML
+  let html = raw
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    // Section headers
+    .replace(/##H1##\s*(.+)/g,'<span class="diag-h1">$1</span>')
+    .replace(/##H2##\s*(.+)/g,'<span class="diag-h2">$1</span>')
+    // Commands — monospace cyan block
+    .replace(/##CMD##\s*(.+)/g,'<code class="diag-cmd">$1</code>')
+    // Notes
+    .replace(/##NOTE##\s*(.+)/g,'<span class="diag-note">⚠ $1</span>')
+    // Steps
+    .replace(/##STEP##\s*(.+)/g,(m,p1,offset,str)=>{
+      const num = (str.substring(0,offset).match(/diag-step-num/g)||[]).length+1;
+      return `<span class="diag-step"><span class="diag-step-num">${num}</span><span>${p1}</span></span>`;
+    })
+    // Inline status
+    .replace(/##OK##\s*(.+)/g,'<span class="diag-ok">✓ $1</span>')
+    .replace(/##WARN##\s*(.+)/g,'<span class="diag-warn">⚠ $1</span>')
+    .replace(/##FAIL##\s*(.+)/g,'<span class="diag-fail">✕ $1</span>')
+    // Bold
+    .replace(/\*\*(.+?)\*\*/g,'<strong style="color:var(--text)">$1</strong>')
+    // Backtick commands
+    .replace(/`([^`]+)`/g,'<code style="background:rgba(0,200,255,.08);color:var(--cyan);padding:1px 5px;border-radius:2px;font-family:var(--mono);font-size:.68rem">$1</code>')
+    // Markdown-style headers
+    .replace(/^### (.+)$/gm,'<span class="diag-h2">$1</span>')
+    .replace(/^## (.+)$/gm,'<span class="diag-h1">$1</span>')
+    .replace(/^# (.+)$/gm,'<span class="diag-h1">$1</span>')
+    // Newlines
+    .replace(/\n/g,'<br>');
+
+  document.getElementById('diag-streaming').innerHTML = html;
+  // Auto-scroll
+  const modal = document.getElementById('diag-modal');
+  modal.scrollTop = modal.scrollHeight;
+}
+
+function finishDiag(){
+  document.getElementById('diag-cursor').style.display = 'none';
+  document.getElementById('diag-copy-btn').style.display = 'inline-flex';
+  ['diag-btn-full','diag-btn-quick','diag-btn-physical'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.disabled=false;el.style.opacity='1';}
+  });
+  // Add "Run another" button
+  document.getElementById('diag-ask').style.display = 'block';
+  document.querySelector('#diag-ask > div:last-child').insertAdjacentHTML('beforeend',
+    '<button class="btn bpurple bsm" onclick="resetDiagButtons()" style="margin-left:auto">⬡ Ask Again</button>');
+}
+
+function resetDiagButtons(){
+  document.getElementById('diag-response').style.display='none';
+  document.getElementById('diag-streaming').innerHTML='';
+  _diagCurrentText='';
+  document.getElementById('diag-ask').style.display='block';
+  // Remove extra "Ask Again" buttons
+  document.querySelectorAll('#diag-ask button[onclick="resetDiagButtons()"]').forEach(b=>b.remove());
+}
+
+function copyDiagnosis(){
+  const text = _diagCurrentText;
+  navigator.clipboard.writeText(text).then(()=>toast('Diagnosis report copied ✓')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied ✓');
+  });
+}
+// Close modal on backdrop click — deferred so DOM is ready
+window.addEventListener('DOMContentLoaded',function(){
+  const dm=document.getElementById('diag-modal');
+  if(dm)dm.addEventListener('click',function(e){if(e.target===this)closeDiagnose();});
+});
+
 </script>
+
+<!-- ═══════════════════════════════════════
+     AI DIAGNOSIS MODAL
+     ═══════════════════════════════════════ -->
+<div id="diag-modal" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(1,5,14,.92);backdrop-filter:blur(10px);align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;">
+  <div style="width:100%;max-width:860px;background:rgba(2,11,24,.98);border:1px solid rgba(191,95,255,.3);border-radius:6px;box-shadow:0 0 60px rgba(191,95,255,.1),0 8px 64px rgba(0,0,0,.9);position:relative;animation:fadeUp .25s ease;">
+    <!-- Top accent line -->
+    <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#bf5fff 30%,#00c8ff 70%,transparent);border-radius:6px 6px 0 0;"></div>
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(191,95,255,.15);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:32px;height:32px;background:rgba(191,95,255,.1);border:1px solid rgba(191,95,255,.3);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 0 16px rgba(191,95,255,.2);">⬡</div>
+        <div>
+          <div style="font-family:var(--display);font-size:.95rem;font-weight:700;color:var(--text);letter-spacing:2px;text-transform:uppercase;">AI Diagnosis Engine</div>
+          <div style="font-family:var(--mono);font-size:.56rem;color:rgba(191,95,255,.7);letter-spacing:1px;" id="diag-subtitle">Tejas TJ1400-7 · Fault Analysis & Rectification</div>
+        </div>
+      </div>
+      <button onclick="closeDiagnose()" style="background:transparent;border:1px solid rgba(191,95,255,.2);color:rgba(191,95,255,.6);width:28px;height:28px;border-radius:4px;cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(255,45,85,.1)';this.style.color='var(--fail)'" onmouseout="this.style.background='transparent';this.style.color='rgba(191,95,255,.6)'">✕</button>
+    </div>
+    <!-- Issue Summary -->
+    <div id="diag-summary" style="padding:14px 20px;border-bottom:1px solid rgba(191,95,255,.1);display:flex;gap:10px;flex-wrap:wrap;"></div>
+    <!-- Ask prompt -->
+    <div id="diag-ask" style="padding:16px 20px;border-bottom:1px solid rgba(191,95,255,.1);">
+      <div style="font-family:var(--mono);font-size:.6rem;color:rgba(191,95,255,.7);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">⬡ DIAGNOSIS REQUEST</div>
+      <div style="font-family:var(--sans);font-size:.82rem;color:var(--text2);line-height:1.6;margin-bottom:12px;" id="diag-prompt-preview"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn bpurple" onclick="runDiagnosis('full')" id="diag-btn-full">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round"/></svg>
+          Full Diagnosis & Rectification Steps
+        </button>
+        <button class="btn bo bsm" onclick="runDiagnosis('quick')" id="diag-btn-quick">Quick Check Commands</button>
+        <button class="btn bo bsm" onclick="runDiagnosis('physical')" id="diag-btn-physical">Physical Inspection Guide</button>
+      </div>
+    </div>
+    <!-- Response area -->
+    <div id="diag-response" style="padding:20px;min-height:200px;display:none;">
+      <div id="diag-streaming" style="font-family:var(--mono);font-size:.72rem;line-height:1.9;color:var(--text2);white-space:pre-wrap;"></div>
+      <div id="diag-cursor" style="display:inline-block;width:8px;height:14px;background:var(--purple);animation:blink .7s step-end infinite;vertical-align:middle;margin-left:2px;"></div>
+    </div>
+    <!-- Footer -->
+    <div style="padding:10px 20px;border-top:1px solid rgba(191,95,255,.1);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:var(--mono);font-size:.55rem;color:var(--muted);letter-spacing:1px;">Powered by Claude AI · Tejas TJ1400-7 Knowledge Base</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn bo bxs" id="diag-copy-btn" style="display:none" onclick="copyDiagnosis()">⬡ Copy Report</button>
+        <button class="btn bo bxs" onclick="closeDiagnose()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+/* Diagnosis response formatting */
+#diag-streaming .diag-h1{font-family:var(--display);font-size:1rem;font-weight:700;color:var(--purple);letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid rgba(191,95,255,.2);padding-bottom:6px;margin:16px 0 10px;display:block;}
+#diag-streaming .diag-h2{font-family:var(--display);font-size:.82rem;font-weight:700;color:var(--cyan);letter-spacing:1px;text-transform:uppercase;margin:12px 0 6px;display:block;}
+#diag-streaming .diag-step{display:flex;gap:10px;margin:6px 0;align-items:flex-start;}
+#diag-streaming .diag-step-num{min-width:22px;height:22px;background:rgba(191,95,255,.12);border:1px solid rgba(191,95,255,.3);border-radius:2px;color:var(--purple);font-size:.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+#diag-streaming .diag-cmd{display:block;background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.15);border-left:2px solid var(--cyan);border-radius:0 4px 4px 0;padding:6px 12px;margin:5px 0;font-family:var(--mono);font-size:.7rem;color:var(--cyan);letter-spacing:.3px;}
+#diag-streaming .diag-warn{color:var(--warn);}
+#diag-streaming .diag-ok{color:var(--ok);}
+#diag-streaming .diag-fail{color:var(--fail);}
+#diag-streaming .diag-note{display:block;background:rgba(255,184,0,.04);border-left:2px solid var(--warn);padding:5px 10px;margin:4px 0;font-size:.68rem;color:var(--warn);border-radius:0 3px 3px 0;}
+</style>
+
 </body>
 </html>
+
