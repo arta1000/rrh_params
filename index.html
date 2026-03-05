@@ -2886,126 +2886,376 @@ if(dtEl)dtEl.value=new Date().toLocaleString();
 // AI DIAGNOSIS ENGINE — Tejas TJ1400-7 RRH Fault Analysis
 // ═══════════════════════════════════════════════════════════════
 
-const TEJAS_SYSTEM_PROMPT = `You are an expert Tejas Networks TJ1400-7 LTE eNodeB field engineer with deep knowledge of RRH fault diagnosis and rectification.
 
-You have complete knowledge of the Tejas EMCLI command set:
+// ═══════════════════════════════════════════════════════════════
+// OFFLINE DIAGNOSIS KNOWLEDGE BASE — Tejas TJ1400-7 TJ1400-7
+// No API needed — full step-by-step guidance built-in
+// ═══════════════════════════════════════════════════════════════
 
-MAIN COMMANDS:
-- Show Alarm CurrentAlarm — Display all raised alarms
-- Show Alarm HistoryEvent — Display history of raised alarms
-- Show Status — Get current eNB status
-- Show Rrh_Status Cell_0/Cell_1/Cell_2 — RRH status per sector
-- Show Rrh_GetConfig Cell_0/Cell_1/Cell_2 — RRH configuration per sector
-- Show Temperature — Card temperature
-- Show FAN_Status0 / Show FAN_Status1 — Fan status
-- Show GpsStatus — GPS lock status
-- Show S1AP_Status — S1AP link status
-- Show Interface — Network interface details
-- Show Config CellConfig — Cell configuration
-- Show Config MME — MME gateway parameters
-- Show Config NTP — NTP server parameters
-- Show Config DeviceInfo — Device hardware info
-- Show Config Clocksource — Clock source config
-- Show Log — System logs
-- Show Version_Info — Software version
-- Show Package_Name — Running package
-- Show Inventory — Hardware inventory
-- Show RETScan Cell_0/Cell_1/Cell_2 — RET antenna tilt scan
-- Show GetTilt Cell_0/Cell_1/Cell_2 — Get antenna tilt value
-- RRH UploadLog — Upload RRH logs
-- RRH GetAlarm Cell_0/Cell_1/Cell_2 — Get RRH alarms
-- RRH GetAlarmCapability Cell_0/Cell_1/Cell_2 — Alarm capability
-- RRH Reboot Cell_0/Cell_1/Cell_2 — Reboot RRH
-- RRH GetRRHRebootReason Cell_0/Cell_1/Cell_2 — Reboot reason
-- Reset — Reset stats
-- ResetKpiStats — Reset KPI stats
-- ResetS1LinkStats — Reset S1 link stats
-- S1LinkStats — S1 link statistics
-- CellMgmt — Cell start operation
-- CellMgmt Start_Sec 0/1/2 — Start sector
-- CellMgmt Restart_Sec 0/1/2 — Restart sector
-- CellMgmt Delete_Sec 0/1/2 — Delete sector
-- ProtocolRestart — Restart eNodeB protocol
-- Restart — Restart eNodeB system
-- SFP Status — SFP transceiver status
-- SFP Inventory — SFP inventory
-- Config Clocksource — Configure clock source
-- Config MME — Set MME IP
-- Config NTP — Set NTP server
-- Config CellConfig — Configure cell parameters
+const DIAG_KB = {
+  // ── MODULE STATUS ─────────────────────────────────────────────
+  mErrored: {
+    title: 'Module Hardware/Software Error',
+    severity: 'CRITICAL',
+    cause: 'Non-zero mErrored indicates internal hardware fault, firmware crash, or memory corruption in the RRH module.',
+    steps: [
+      { type: 'cmd',  text: 'Show Alarm CurrentAlarm',                      note: 'Check all active alarms raised by the module' },
+      { type: 'cmd',  text: 'Show Alarm HistoryEvent',                      note: 'Review alarm history for recurring patterns' },
+      { type: 'cmd',  text: 'Show Rrh_Status {CELL}',                       note: 'Get full RRH status — look for error flags' },
+      { type: 'cmd',  text: 'RRH GetAlarm {CELL}',                          note: 'Get RRH-specific alarm list' },
+      { type: 'cmd',  text: 'RRH GetRRHRebootReason {CELL}',                note: 'Check last reboot reason — confirms HW/SW fault' },
+      { type: 'cmd',  text: 'Show Log',                                     note: 'Review system logs for error traces' },
+      { type: 'cmd',  text: 'Show Version_Info',                            note: 'Confirm software version — may need upgrade' },
+      { type: 'phys', text: 'Inspect RRH enclosure for physical damage, burn marks, or corrosion' },
+      { type: 'phys', text: 'Verify all power connectors are fully seated and undamaged' },
+      { type: 'phys', text: 'Check grounding connections at RRH and tower base' },
+      { type: 'action',text: 'If persistent: RRH Reboot {CELL} — then re-check mErrored value' },
+      { type: 'cmd',  text: 'RRH Reboot {CELL}',                           note: 'Soft reboot the RRH to clear transient errors' },
+      { type: 'action',text: 'If still non-zero after reboot: escalate for RRH hardware replacement' },
+    ]
+  },
 
-KEY PARAMETERS TO DIAGNOSE (from RRH report):
-- mErrored: Hardware error count (should be 0)
-- tx_status0/1/2: Transmitter status (1=active, 0=fault)
-- tx_power0/1/2: TX power in dBm (typical: 35-43 dBm)
-- VSWR_0/1/2: Voltage Standing Wave Ratio (good: <1.5, warn: 1.5-2.0, fail: >2.0)
-- rx_power0/1/2: RX power in dBm (typical: -60 to -40 dBm)
-- temperature: RRH temperature (warn: >55°C, fail: >65°C)
-- voltage_input: Supply voltage (typical: 48V DC, warn: <44V or >52V)
-- current_consumption: Current draw (warn if abnormally high)
-- cpri_status: CPRI link status (1=up, 0=down)
-- lock_status: PLL lock (1=locked, 0=unlocked)
-- pa_status: Power amplifier status
-- alarm_status: Active alarm flags
+  // ── TX CHAIN ──────────────────────────────────────────────────
+  tx_status: {
+    title: 'TX Chain Fault',
+    severity: 'CRITICAL',
+    cause: 'TX status = 0 means the transmitter is inactive or has shutdown due to a fault condition (overcurrent, temperature, PA failure, or VSWR protection trip).',
+    steps: [
+      { type: 'cmd',  text: 'Show Alarm CurrentAlarm',                      note: 'Check for TX-related alarms' },
+      { type: 'cmd',  text: 'Show Rrh_Status {CELL}',                       note: 'Confirm which antennas are affected' },
+      { type: 'cmd',  text: 'RRH GetAlarm {CELL}',                          note: 'Get detailed RRH alarm — PA protection, VSWR trip, over-temp' },
+      { type: 'cmd',  text: 'Show Temperature',                             note: 'If PA over-temp caused TX shutdown — check thermal' },
+      { type: 'phys', text: 'Check antenna connector (N-type / 4.3-10) — tighten to spec torque (20 Nm for N-type)' },
+      { type: 'phys', text: 'Inspect feeder cable for kinks, water ingress, or damage at RRH entry point' },
+      { type: 'phys', text: 'Verify antenna jumper is not open-circuited — test with multimeter continuity' },
+      { type: 'phys', text: 'Check PA cooling fins — clear any obstruction (dust, debris, bird nests)' },
+      { type: 'action',text: 'If VSWR caused TX shutdown: fix antenna/feeder first, then restart sector' },
+      { type: 'cmd',  text: 'CellMgmt Restart_Sec {SEC}',                  note: 'Restart sector to re-enable TX after fixing root cause' },
+      { type: 'action',text: 'Monitor for 5 mins — if TX shuts down again, RRH PA module may be faulty' },
+    ]
+  },
 
-PHYSICAL CHECKS include:
-- Antenna connector inspection (PIM, loose connections)
-- Feeder cable visual check (damage, water ingress)
-- Power supply cable and connector check
-- CPRI fiber inspection (bend radius, connector cleanliness)
-- RRH mounting and grounding check
-- Cooling fins obstruction check
-- LED status interpretation
+  tx_power: {
+    title: 'TX Output Power Out of Range',
+    severity: 'WARNING',
+    cause: 'TX power deviating from nominal (38–46 dBm) indicates PA compression, power supply issue, cable loss miscalibration, or faulty attenuator.',
+    steps: [
+      { type: 'cmd',  text: 'Show Rrh_GetConfig {CELL}',                    note: 'Check configured TX power target — verify it matches expected' },
+      { type: 'cmd',  text: 'Show Config CellConfig',                       note: 'Check referenceSignalPower and pMax settings' },
+      { type: 'cmd',  text: 'RRH GetAlarm {CELL}',                          note: 'Check for PA protection alarms' },
+      { type: 'phys', text: 'Verify power supply voltage at RRH input (nominal 48V DC ±5%)' },
+      { type: 'phys', text: 'Inspect feeder cable length and connectors — unexpected loss reduces output power' },
+      { type: 'phys', text: 'Check if any inline attenuator or diplexer is inserted in the antenna path' },
+      { type: 'action',text: 'Low power (<36 dBm): check PA health, supply voltage, and feeder loss' },
+      { type: 'action',text: 'High power (>47 dBm): check cell config — pMax may be set too high' },
+      { type: 'cmd',  text: 'Show Status',                                  note: 'Confirm eNB is fully operational' },
+    ]
+  },
 
-RESPONSE FORMAT:
-Use these exact markers for structured output:
-##H1## for main section headers
-##H2## for subsection headers  
-##CMD## prefix for CLI commands (one per line)
-##NOTE## prefix for warnings/notes
-##STEP## prefix for numbered steps (auto-numbered)
-##OK## for normal/good indicators
-##WARN## for warning indicators
-##FAIL## for failure indicators
+  tx_IQImb: {
+    title: 'TX IQ Imbalance',
+    severity: 'WARNING',
+    cause: 'IQ imbalance >±2 dB causes in-band interference and degrades EVM. Usually indicates RFIC calibration drift or hardware fault.',
+    steps: [
+      { type: 'cmd',  text: 'Show Rrh_Status {CELL}',                       note: 'Confirm current IQ calibration state' },
+      { type: 'cmd',  text: 'Show Version_Info',                            note: 'Check if firmware update includes IQ recalibration fix' },
+      { type: 'action',text: 'Restart sector to trigger auto-recalibration on startup' },
+      { type: 'cmd',  text: 'CellMgmt Restart_Sec {SEC}',                  note: 'Forces IQ self-calibration during sector init' },
+      { type: 'action',text: 'If imbalance persists after restart: escalate for RRH RFIC fault — replacement needed' },
+    ]
+  },
 
-Be specific, practical, and give exact commands. Always reference sector numbers (Cell_0/Cell_1/Cell_2) based on the sector in the report. Prioritize safety steps first.`;
+  tx_aclr: {
+    title: 'ACLR (Adjacent Channel Leakage) Out of Spec',
+    severity: 'WARNING',
+    cause: 'ACLR >8 dBc causes interference to adjacent frequency channels. Root cause: PA nonlinearity, high input power, or DPD (Digital Pre-Distortion) failure.',
+    steps: [
+      { type: 'cmd',  text: 'Show Config CellConfig',                       note: 'Check transmit power settings — reduce if too high' },
+      { type: 'cmd',  text: 'Show Rrh_Status {CELL}',                       note: 'Check DPD calibration status' },
+      { type: 'action',text: 'Reduce configured TX power by 2–3 dBm and re-measure' },
+      { type: 'cmd',  text: 'CellMgmt Restart_Sec {SEC}',                  note: 'Forces DPD re-training on sector start' },
+      { type: 'phys', text: 'Check PA cooling — overheating degrades PA linearity and worsens ACLR' },
+      { type: 'action',text: 'If ACLR remains bad at reduced power: PA nonlinearity — RRH replacement needed' },
+    ]
+  },
 
-let _diagCurrentText = '';
-let _diagAbortCtrl = null;
+  // ── VSWR ──────────────────────────────────────────────────────
+  VSWR: {
+    title: 'High VSWR — Antenna/Feeder Mismatch',
+    severity: 'CRITICAL',
+    cause: 'VSWR >2.0 means significant RF power is reflected back into the PA. Root causes: loose connector, damaged feeder cable, water ingress, open-circuit antenna, or PIM (Passive Intermodulation).',
+    steps: [
+      { type: 'cmd',  text: 'Show Rrh_Status {CELL}',                       note: 'Confirm VSWR reading and check if TX is still enabled' },
+      { type: 'cmd',  text: 'RRH GetAlarm {CELL}',                          note: 'Check for VSWR protection alarm / TX shutdown' },
+      { type: 'phys', text: '⚠ SAFETY: Reduce TX power before physical inspection near antenna' },
+      { type: 'phys', text: 'Inspect N-type / 4.3-10 connector at RRH port — retighten to 20 Nm torque spec' },
+      { type: 'phys', text: 'Check jumper cable from RRH to feeder — look for kinks, crush damage, or water at connectors' },
+      { type: 'phys', text: 'Inspect top-of-tower connector (feeder to antenna) — apply weatherproofing tape if absent' },
+      { type: 'phys', text: 'Check feeder cable along the tower — look for mechanical damage from equipment or wildlife' },
+      { type: 'phys', text: 'Verify antenna port is not open-circuited (jumper disconnected or antenna removed)' },
+      { type: 'phys', text: 'Use Site Master / Anritsu / Rosenberger meter to sweep feeder VSWR from RRH port up' },
+      { type: 'action',text: 'VSWR 1.5–2.0 (WARN): Inspect and retorque connectors, apply weatherproofing' },
+      { type: 'action',text: 'VSWR >2.0 (FAIL): Isolate feeder sections to find fault — replace faulty section' },
+      { type: 'cmd',  text: 'CellMgmt Restart_Sec {SEC}',                  note: 'After fixing feeder — restart sector to re-enable TX' },
+    ]
+  },
+
+  // ── RX CHAIN ──────────────────────────────────────────────────
+  rx_status: {
+    title: 'RX Chain Fault',
+    severity: 'CRITICAL',
+    cause: 'RX status = 0 means the receiver is inactive. Causes: LNA fault, RFIC failure, or sector not started.',
+    steps: [
+      { type: 'cmd',  text: 'Show Alarm CurrentAlarm',                      note: 'Check for RX path alarms' },
+      { type: 'cmd',  text: 'Show Rrh_Status {CELL}',                       note: 'Confirm RX status per antenna' },
+      { type: 'cmd',  text: 'RRH GetAlarm {CELL}',                          note: 'Check for LNA alarm flags' },
+      { type: 'action',text: 'Restart sector to reinitialize RX chain' },
+      { type: 'cmd',  text: 'CellMgmt Restart_Sec {SEC}',                  note: 'Restarts RX calibration and LNA initialization' },
+      { type: 'phys', text: 'Check RX connector and feeder continuity' },
+      { type: 'action',text: 'If RX status remains 0 after restart: RFIC or LNA hardware fault — RRH replacement' },
+    ]
+  },
+
+  rx_power: {
+    title: 'RX Power Abnormal',
+    severity: 'WARNING',
+    cause: 'RX power outside -100 to -70 dBm range. Too low = feeder loss / antenna fault. Too high = strong interference or co-channel signal.',
+    steps: [
+      { type: 'cmd',  text: 'Show Rrh_Status {CELL}',                       note: 'Confirm RX power reading on both antennas' },
+      { type: 'cmd',  text: 'Show Alarm CurrentAlarm',                      note: 'Check for interference or RACH alarms' },
+      { type: 'action',text: 'Very low RX (<-110 dBm): check antenna, feeder, and LNA path' },
+      { type: 'phys', text: 'Verify antenna orientation and tilt — may be pointing away from coverage area' },
+      { type: 'cmd',  text: 'Show RETScan {CELL}',                          note: 'Check RET (Remote Electrical Tilt) status' },
+      { type: 'cmd',  text: 'Show GetTilt {CELL}',                          note: 'Verify current antenna tilt value' },
+      { type: 'action',text: 'High RX (>-60 dBm): suspect strong nearby interferer — check spectrum' },
+    ]
+  },
+
+  // ── PA HEALTH ─────────────────────────────────────────────────
+  pa_temp: {
+    title: 'PA Temperature High',
+    severity: 'WARNING',
+    cause: 'PA temperature >55°C is a warning; >70°C triggers automatic shutdown. Causes: blocked cooling, high ambient temp, full load operation, or defective thermal interface.',
+    steps: [
+      { type: 'cmd',  text: 'Show Temperature',                             note: 'Check all temperature sensors on the card' },
+      { type: 'cmd',  text: 'Show FAN_Status0',                             note: 'Check Fan 0 RPM and health' },
+      { type: 'cmd',  text: 'Show FAN_Status1',                             note: 'Check Fan 1 RPM and health' },
+      { type: 'phys', text: '⚠ SAFETY: Do not touch RRH heatsink — may be very hot' },
+      { type: 'phys', text: 'Clear ALL obstructions from RRH cooling fins (dust, leaves, bird nests, cable ties)' },
+      { type: 'phys', text: 'Ensure minimum 20 cm clearance around all RRH ventilation paths' },
+      { type: 'phys', text: 'Check direct sun exposure — install sun shade if RRH faces south/west in hot climate' },
+      { type: 'phys', text: 'Inspect thermal pad / heatsink compound between PA module and chassis' },
+      { type: 'action',text: 'If ambient >45°C: reduce TX power by 3 dB to lower PA thermal load' },
+      { type: 'action',text: 'If temperature >70°C and TX has shutdown: allow cooling, clear obstruction, then restart' },
+      { type: 'cmd',  text: 'CellMgmt Restart_Sec {SEC}',                  note: 'After cooling — restart sector to re-enable PA' },
+    ]
+  },
+
+  pa_volt: {
+    title: 'PA Voltage Out of Range',
+    severity: 'CRITICAL',
+    cause: 'PA supply voltage outside 28–32V (nominal ~30V) indicates PSU fault, cabling issue, or excessive load.',
+    steps: [
+      { type: 'cmd',  text: 'Show Rrh_Status {CELL}',                       note: 'Confirm PA voltage reading' },
+      { type: 'cmd',  text: 'Show Alarm CurrentAlarm',                      note: 'Check for PSU alarms' },
+      { type: 'phys', text: 'Measure PA supply voltage at RRH connector with multimeter (nominal 48V DC input → 30V PA rail)' },
+      { type: 'phys', text: 'Check DC power cable from RBS/PSU to RRH — verify cable gauge and connector crimping' },
+      { type: 'phys', text: 'Inspect power supply unit (PSU) LEDs — confirm PSU is in healthy state' },
+      { type: 'action',text: 'If voltage low (<26V): PSU overloaded or cable voltage drop — check cable resistance' },
+      { type: 'action',text: 'If voltage high (>34V): PSU regulation fault — replace PSU' },
+    ]
+  },
+
+  pa_current: {
+    title: 'PA Current Abnormal',
+    severity: 'WARNING',
+    cause: 'PA drain current outside 0.8–2.0A range. Low current = PA not transmitting. High current = PA driven into compression or hardware fault.',
+    steps: [
+      { type: 'cmd',  text: 'Show Rrh_Status {CELL}',                       note: 'Correlate PA current with TX power and PA voltage' },
+      { type: 'cmd',  text: 'RRH GetAlarm {CELL}',                          note: 'Check for PA overcurrent protection alarm' },
+      { type: 'action',text: 'Low current (<0.5A): PA not transmitting — check TX status, sector state' },
+      { type: 'action',text: 'High current (>2.5A): PA compressed or shorted — reduce power, check VSWR' },
+      { type: 'cmd',  text: 'CellMgmt Restart_Sec {SEC}',                  note: 'Restart sector — allows PA biasing to reset' },
+    ]
+  },
+
+  // ── RRH ENVIRONMENT ───────────────────────────────────────────
+  rrh_temp: {
+    title: 'RRH Enclosure Temperature High',
+    severity: 'WARNING',
+    cause: 'Enclosure temperature >55°C warns of thermal stress. >70°C is critical. Similar causes to PA temp: cooling blockage, high ambient, or solar heating.',
+    steps: [
+      { type: 'cmd',  text: 'Show Temperature',                             note: 'Read all temperature sensors together' },
+      { type: 'cmd',  text: 'Show FAN_Status0',                             note: 'Verify fan operation' },
+      { type: 'cmd',  text: 'Show FAN_Status1',                             note: 'Verify fan operation' },
+      { type: 'phys', text: 'Clear RRH cooling fins and ventilation — primary cause is dust/debris blockage' },
+      { type: 'phys', text: 'Verify RRH mounting orientation (cooling fins must face upward or as per installation guide)' },
+      { type: 'phys', text: 'Check ambient temperature — if site >45°C, install additional cooling or sun shield' },
+    ]
+  },
+
+  psu_volt: {
+    title: 'PSU Input Voltage Out of Range',
+    severity: 'CRITICAL',
+    cause: 'PSU voltage outside 48–54V (nominal 48–50V DC). Low voltage risks equipment reset; high voltage risks component damage.',
+    steps: [
+      { type: 'cmd',  text: 'Show Rrh_Status {CELL}',                       note: 'Confirm PSU voltage reading' },
+      { type: 'cmd',  text: 'Show Alarm CurrentAlarm',                      note: 'Check for power alarms' },
+      { type: 'phys', text: 'Measure DC voltage at RRH input connector (nominal 48V ±5% = 45.6–50.4V acceptable)' },
+      { type: 'phys', text: 'Trace back to rectifier/PSU — measure output voltage at PSU terminals' },
+      { type: 'phys', text: 'Check DC cable for excessive resistance (>10 m run requires larger gauge cable)' },
+      { type: 'phys', text: 'Verify fuse/circuit breaker in power distribution unit — replace if blown' },
+      { type: 'action',text: 'Voltage <46V: check cable loss, rectifier output setting, and load sharing among RRHs' },
+      { type: 'action',text: 'Voltage >56V: rectifier regulation fault — replace rectifier module' },
+    ]
+  },
+
+  // ── CPRI ──────────────────────────────────────────────────────
+  cpri: {
+    title: 'CPRI Link Fault',
+    severity: 'CRITICAL',
+    cause: 'CPRI link down or error (LOS/LOF/RAI/SD) means no baseband–RRH communication. Causes: fiber break, dirty connector, SFP fault, or wrong CPRI rate.',
+    steps: [
+      { type: 'cmd',  text: 'Show Rrh_Status {CELL}',                       note: 'Check CPRI port status — should show "slave" when connected' },
+      { type: 'cmd',  text: 'SFP Status',                                   note: 'Check SFP transceiver Tx/Rx power — critical for fiber link health' },
+      { type: 'cmd',  text: 'SFP Inventory',                                note: 'Confirm SFP type and wavelength match at both ends' },
+      { type: 'cmd',  text: 'Show Alarm CurrentAlarm',                      note: 'Check for LOS (Loss of Signal) or LOF (Loss of Frame) alarms' },
+      { type: 'phys', text: '⚠ NEVER look into fiber connector — laser radiation hazard' },
+      { type: 'phys', text: 'Clean CPRI fiber connectors with fiber optic cleaner pen (LC/SC connector) — dirty connectors are #1 cause' },
+      { type: 'phys', text: 'Inspect fiber for physical damage — bends tighter than 30mm radius break fiber signal' },
+      { type: 'phys', text: 'Verify fiber patch cord is fully inserted at both BBU and RRH SFP ports' },
+      { type: 'phys', text: 'Swap with known-good fiber if available to isolate fiber vs SFP fault' },
+      { type: 'action',text: 'If SFP Tx power is zero or low: SFP module is faulty — replace SFP' },
+      { type: 'cmd',  text: 'RRH Reboot {CELL}',                           note: 'Reboot RRH after physical fix to re-sync CPRI' },
+    ]
+  },
+
+  // ── CLOCK/SYNC ────────────────────────────────────────────────
+  clock: {
+    title: 'Clock / Synchronization Fault',
+    severity: 'CRITICAL',
+    cause: 'Clock unlock (pll_lock=0) or GPS sync loss disrupts timing and causes call drops. LTE requires <±1.5 μs time accuracy.',
+    steps: [
+      { type: 'cmd',  text: 'Show GpsStatus',                               note: 'Check GPS lock — should show LOCKED with satellite count >4' },
+      { type: 'cmd',  text: 'Show Config Clocksource',                      note: 'Verify clock source configured (GPS/IEEE1588/BITS)' },
+      { type: 'cmd',  text: 'Show Alarm CurrentAlarm',                      note: 'Check for clock alarm, GPS alarm' },
+      { type: 'phys', text: 'Check GPS antenna cable from roof to BBU — look for damage or loose connectors' },
+      { type: 'phys', text: 'Verify GPS antenna has clear sky view (>120° azimuth, no overhead obstruction)' },
+      { type: 'phys', text: 'Check GPS antenna mounting — must be vertical, away from metal structures' },
+      { type: 'action',text: 'If GPS visible but not locked: wait 15 mins for initial acquisition (cold start)' },
+      { type: 'cmd',  text: 'Config Clocksource',                           note: 'Reconfigure clock source if GPS not available — use IEEE1588' },
+    ]
+  },
+
+  // ── S1 LINK ───────────────────────────────────────────────────
+  s1ap: {
+    title: 'S1AP Link Down',
+    severity: 'CRITICAL',
+    cause: 'S1 link to MME is down — no UE attach possible. Causes: MME IP misconfigured, backhaul network issue, or SCTP connection rejected.',
+    steps: [
+      { type: 'cmd',  text: 'Show S1AP_Status',                             note: 'Check S1AP state — should be CONNECTED' },
+      { type: 'cmd',  text: 'S1LinkStats',                                  note: 'Check SCTP connection stats and error counters' },
+      { type: 'cmd',  text: 'Show Config MME',                              note: 'Verify MME IP address and port configured correctly' },
+      { type: 'cmd',  text: 'Show Interface',                               note: 'Check S1 interface IP and routing is up' },
+      { type: 'cmd',  text: 'Show Alarm CurrentAlarm',                      note: 'Look for S1 link alarm or SCTP alarm' },
+      { type: 'phys', text: 'Verify backhaul cable/SFP from eNB to transmission equipment is connected and active' },
+      { type: 'action',text: 'If MME IP is wrong: Config MME → correct IP → ProtocolRestart' },
+      { type: 'cmd',  text: 'Config MME',                                   note: 'Update MME IP address if incorrect' },
+      { type: 'cmd',  text: 'ProtocolRestart',                              note: 'Restart eNB protocols to re-establish S1 after config change' },
+      { type: 'cmd',  text: 'ResetS1LinkStats',                             note: 'Reset S1 stats after fix to get clean counters' },
+    ]
+  },
+
+  // ── GENERAL ───────────────────────────────────────────────────
+  general: {
+    title: 'General Health Check',
+    severity: 'INFO',
+    cause: 'Routine check commands to assess overall eNodeB health.',
+    steps: [
+      { type: 'cmd',  text: 'Show Status',                                  note: 'Overall eNB operational status' },
+      { type: 'cmd',  text: 'Show Alarm CurrentAlarm',                      note: 'All active alarms' },
+      { type: 'cmd',  text: 'Show Rrh_Status {CELL}',                       note: 'RRH status per sector' },
+      { type: 'cmd',  text: 'Show Temperature',                             note: 'Thermal health' },
+      { type: 'cmd',  text: 'Show FAN_Status0',                             note: 'Fan health' },
+      { type: 'cmd',  text: 'Show GpsStatus',                               note: 'GPS / sync status' },
+      { type: 'cmd',  text: 'Show S1AP_Status',                             note: 'Core network link' },
+      { type: 'cmd',  text: 'Show Version_Info',                            note: 'Software version' },
+      { type: 'cmd',  text: 'SFP Status',                                   note: 'CPRI fiber link health' },
+    ]
+  }
+};
+
+// Map parameter keys → knowledge base entries
+function getKBKey(paramKey){
+  if(!paramKey) return 'general';
+  const k = paramKey.toLowerCase();
+  if(k==='merrorred'||k==='merroreed'||k==='merrorrd') return 'mErrored';
+  if(k.startsWith('tx_status')) return 'tx_status';
+  if(k.startsWith('tx_power')) return 'tx_power';
+  if(k.startsWith('tx_iqimb')||k.startsWith('tx_angle')) return 'tx_IQImb';
+  if(k.startsWith('tx_aclr')||k.startsWith('tx_dcofsl')||k.startsWith('tx_q')) return 'tx_aclr';
+  if(k.startsWith('vswr')) return 'VSWR';
+  if(k.startsWith('rx_status')) return 'rx_status';
+  if(k.startsWith('rx_power')) return 'rx_power';
+  if(k.startsWith('rx_')||k.startsWith('pa_power')) return 'rx_power';
+  if(k.startsWith('pa_temp')) return 'pa_temp';
+  if(k.startsWith('pa_volt')) return 'pa_volt';
+  if(k.startsWith('pa0_current')||k.startsWith('pa1_current')) return 'pa_current';
+  if(k.includes('temp')||k.includes('rfic_temp')||k.includes('soc_temp')||k.includes('xadc')) return 'rrh_temp';
+  if(k.includes('psu_volt')||k.includes('ps_volt')||k.includes('ps_current')) return 'psu_volt';
+  if(k.startsWith('cpri')||k.startsWith('loss')||k.startsWith('lofs')||k.startsWith('rai')||k.startsWith('sdi')) return 'cpri';
+  if(k.includes('clock')||k.includes('pll')||k.includes('gps')||k.includes('lock')) return 'clock';
+  if(k.includes('s1')||k.includes('sctp')||k.includes('mme')) return 's1ap';
+  return 'general';
+}
+
 let _diagStats = null;
-let _diagMeta = null;
+let _diagFullText = '';
 
 function openDiagnose(){
-  if(!curRec){toast('Run analysis first','','terr');return;}
+  if(!curRec){ toast('Run analysis first','','terr'); return; }
   _diagStats = curRec;
-  _diagCurrentText = '';
-  
-  // Build issue summary chips
-  const sumEl = document.getElementById('diag-summary');
-  const chips = [
-    ...(curRec.fail_items||[]).map(i=>`<span style="font-family:var(--mono);font-size:.58rem;background:rgba(255,45,85,.08);border:1px solid rgba(255,45,85,.25);color:var(--fail);padding:3px 9px;border-radius:2px;">✕ ${i.label}</span>`),
-    ...(curRec.warn_items||[]).map(i=>`<span style="font-family:var(--mono);font-size:.58rem;background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.25);color:var(--warn);padding:3px 9px;border-radius:2px;">⚠ ${i.label}</span>`)
-  ];
-  sumEl.innerHTML = chips.length
-    ? `<div style="font-family:var(--mono);font-size:.56rem;color:var(--muted);letter-spacing:1px;width:100%;margin-bottom:4px;">DETECTED ISSUES (${chips.length})</div>` + chips.join('')
-    : '<span style="font-family:var(--mono);font-size:.62rem;color:var(--ok);">✓ No critical issues detected — general health check available</span>';
+  _diagFullText = '';
 
-  // Build prompt preview
-  const sector = curRec.sector || '0';
-  const cellRef = `Cell_${parseInt(sector)-1 >= 0 ? parseInt(sector)-1 : 0}`;
-  document.getElementById('diag-prompt-preview').textContent =
-    `eNodeB: ${curRec.enb_name} · BA: ${curRec.ba||'—'} · Band: ${curRec.band} · Sector: ${curRec.sector} · Health: ${curRec.health_pct}% · ${(curRec.fail_items||[]).length} failures, ${(curRec.warn_items||[]).length} warnings`;
+  const sector = parseInt(curRec.sector||'1');
+  const cellIdx = Math.max(0, sector-1);
+  const cellRef = 'Cell_'+cellIdx;
+  const secRef  = String(cellIdx);
+
+  // Build issue chips
+  const sumEl = document.getElementById('diag-summary');
+  const failChips = (curRec.fail_items||[]).map(i=>
+    `<span style="font-family:var(--mono);font-size:.58rem;background:rgba(255,45,85,.08);border:1px solid rgba(255,45,85,.3);color:var(--fail);padding:3px 9px;border-radius:2px;cursor:pointer" onclick="showParamDiag('${i.key}','${cellRef}','${secRef}')">✕ ${i.label}</span>`
+  );
+  const warnChips = (curRec.warn_items||[]).map(i=>
+    `<span style="font-family:var(--mono);font-size:.58rem;background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.3);color:var(--warn);padding:3px 9px;border-radius:2px;cursor:pointer" onclick="showParamDiag('${i.key}','${cellRef}','${secRef}')">⚠ ${i.label}</span>`
+  );
+  sumEl.innerHTML = (failChips.length||warnChips.length)
+    ? `<div style="font-family:var(--mono);font-size:.54rem;color:var(--muted);letter-spacing:1px;width:100%;margin-bottom:6px;">CLICK ANY ISSUE BELOW FOR STEP-BY-STEP DIAGNOSIS ▼</div>`
+      + failChips.join('') + warnChips.join('')
+    : `<span style="font-family:var(--mono);font-size:.62rem;color:var(--ok);">✓ No critical issues detected</span>`;
+
   document.getElementById('diag-subtitle').textContent =
     `${curRec.enb_name} · ${curRec.band} · Sector ${curRec.sector} · ${cellRef}`;
+  document.getElementById('diag-prompt-preview').innerHTML =
+    `eNodeB <strong style="color:var(--cyan)">${curRec.enb_name}</strong> &nbsp;·&nbsp; `+
+    `BA <strong style="color:var(--warn)">${curRec.ba||'—'}</strong> &nbsp;·&nbsp; `+
+    `<strong>${curRec.band}</strong> &nbsp;·&nbsp; Sector <strong>${curRec.sector}</strong> &nbsp;·&nbsp; `+
+    `Health <strong style="color:${curRec.health_pct>=85?'var(--ok)':curRec.health_pct>=60?'var(--warn)':'var(--fail)'}">${curRec.health_pct}%</strong> &nbsp;·&nbsp; `+
+    `<span style="color:var(--fail)">${(curRec.fail_items||[]).length} failures</span> &nbsp;·&nbsp; `+
+    `<span style="color:var(--warn)">${(curRec.warn_items||[]).length} warnings</span>`;
 
-  // Reset response area
+  // Update mode buttons
+  document.getElementById('diag-btn-full').onclick   = ()=>showAllDiag(cellRef, secRef);
+  document.getElementById('diag-btn-quick').onclick  = ()=>showQuickCmds(cellRef, secRef);
+  document.getElementById('diag-btn-physical').onclick = ()=>showPhysicalGuide(cellRef, secRef);
+
   document.getElementById('diag-response').style.display = 'none';
   document.getElementById('diag-streaming').innerHTML = '';
-  document.getElementById('diag-cursor').style.display = 'inline-block';
+  document.getElementById('diag-cursor').style.display = 'none';
   document.getElementById('diag-copy-btn').style.display = 'none';
   document.getElementById('diag-ask').style.display = 'block';
-  
-  // Show modal
+
   const modal = document.getElementById('diag-modal');
   modal.style.display = 'flex';
   modal.scrollTop = 0;
@@ -3013,192 +3263,165 @@ function openDiagnose(){
 
 function closeDiagnose(){
   document.getElementById('diag-modal').style.display = 'none';
-  if(_diagAbortCtrl){ _diagAbortCtrl.abort(); _diagAbortCtrl = null; }
 }
 
-async function runDiagnosis(mode){
-  if(!_diagStats) return;
+// ── Render one KB entry ──
+function renderKBEntry(kbKey, cellRef, secRef, item){
+  const kb = DIAG_KB[kbKey] || DIAG_KB.general;
+  const measured = item ? ` — measured: <strong style="color:var(--warn)">${item.raw}</strong>` : '';
+  const sevColor = kb.severity==='CRITICAL'?'var(--fail)':kb.severity==='WARNING'?'var(--warn)':'var(--cyan)';
+  let html = `
+    <div style="border:1px solid ${sevColor.replace('var(','').replace(')','')};border-radius:4px;margin-bottom:18px;overflow:hidden;background:rgba(0,0,0,.25);">
+      <div style="background:rgba(255,255,255,.03);padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;">
+        <span style="font-family:var(--mono);font-size:.56rem;font-weight:700;padding:2px 8px;background:${sevColor==='var(--fail)'?'rgba(255,45,85,.1)':sevColor==='var(--warn)'?'rgba(255,184,0,.1)':'rgba(0,200,255,.1)'};border:1px solid;border-color:${sevColor==='var(--fail)'?'rgba(255,45,85,.3)':sevColor==='var(--warn)'?'rgba(255,184,0,.3)':'rgba(0,200,255,.3)'};color:${sevColor};border-radius:2px;letter-spacing:1px;">${kb.severity}</span>
+        <strong style="font-family:var(--display);font-size:.88rem;color:var(--text);letter-spacing:.5px;">${kb.title}</strong>
+        ${item?`<span style="font-family:var(--mono);font-size:.6rem;color:var(--muted);margin-left:auto;">${item.label}${measured}</span>`:''}
+      </div>
+      <div style="padding:12px 14px;">
+        <div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Root Cause</div>
+        <div style="font-family:var(--sans);font-size:.74rem;color:var(--text2);line-height:1.65;margin-bottom:14px;padding:8px 12px;background:rgba(255,255,255,.02);border-left:2px solid rgba(255,255,255,.1);border-radius:0 3px 3px 0;">${kb.cause}</div>
+        <div style="font-family:var(--mono);font-size:.6rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Diagnosis & Rectification Steps</div>`;
   
-  // Disable buttons during streaming
-  ['diag-btn-full','diag-btn-quick','diag-btn-physical'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){el.disabled=true;el.style.opacity='.5';}
+  let stepNum = 0;
+  kb.steps.forEach(s=>{
+    const txt = s.text.replace(/\{CELL\}/g, cellRef).replace(/\{SEC\}/g, secRef);
+    if(s.type==='cmd'){
+      stepNum++;
+      html += `
+        <div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;">
+          <span style="min-width:22px;height:22px;background:rgba(0,200,255,.1);border:1px solid rgba(0,200,255,.25);color:var(--cyan);font-family:var(--mono);font-size:.58rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:2px;margin-top:1px;">${stepNum}</span>
+          <div style="flex:1;">
+            <div style="background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.18);border-left:2px solid var(--cyan);padding:6px 12px;border-radius:0 3px 3px 0;font-family:var(--mono);font-size:.72rem;color:var(--cyan);letter-spacing:.3px;cursor:pointer;user-select:all;" onclick="copyCmd(this)" title="Click to copy">${txt}</div>
+            ${s.note?`<div style="font-family:var(--sans);font-size:.64rem;color:var(--muted);margin-top:2px;padding-left:4px;">${s.note}</div>`:''}
+          </div>
+        </div>`;
+    } else if(s.type==='phys'){
+      stepNum++;
+      html += `
+        <div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;">
+          <span style="min-width:22px;height:22px;background:rgba(255,184,0,.1);border:1px solid rgba(255,184,0,.25);color:var(--warn);font-family:var(--mono);font-size:.58rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:2px;margin-top:1px;">${stepNum}</span>
+          <div style="font-family:var(--sans);font-size:.72rem;color:var(--text2);line-height:1.55;padding-top:3px;">${txt}</div>
+        </div>`;
+    } else if(s.type==='action'){
+      html += `
+        <div style="background:rgba(191,95,255,.05);border:1px solid rgba(191,95,255,.2);border-left:2px solid var(--purple);padding:6px 12px;margin-bottom:6px;border-radius:0 3px 3px 0;font-family:var(--sans);font-size:.7rem;color:rgba(191,95,255,.9);line-height:1.5;">▶ ${txt}</div>`;
+    }
   });
+  html += `</div></div>`;
+  return html;
+}
 
-  document.getElementById('diag-ask').style.display = 'none';
-  document.getElementById('diag-response').style.display = 'block';
-  document.getElementById('diag-streaming').innerHTML = '';
-  document.getElementById('diag-cursor').style.display = 'inline-block';
-  document.getElementById('diag-copy-btn').style.display = 'none';
-  _diagCurrentText = '';
-
+function showParamDiag(paramKey, cellRef, secRef){
+  const kbKey = getKBKey(paramKey);
   const rec = _diagStats;
-  const sector = parseInt(rec.sector||'1');
-  const cellRef = `Cell_${Math.max(0,sector-1)}`;
-  const failList = (rec.fail_items||[]).map(i=>`- ${i.label}: measured=${i.raw}, expected range=${JSON.stringify(i.r)}`).join('\n');
-  const warnList = (rec.warn_items||[]).map(i=>`- ${i.label}: measured=${i.raw}, expected range=${JSON.stringify(i.r)}`).join('\n');
-
-  let userMsg = '';
-  if(mode==='full'){
-    userMsg = `Analyze this Tejas TJ1400-7 RRH report and provide complete diagnosis with step-by-step rectification:
-
-eNodeB: ${rec.enb_name}
-BA: ${rec.ba||'N/A'}
-Band: ${rec.band}
-Sector: ${rec.sector} (use ${cellRef} in commands)
-Health Score: ${rec.health_pct}%
-Report Date: ${rec.report_dt}
-Analyzed By: ${rec.by_name}
-
-FAILURES (${(rec.fail_items||[]).length}):
-${failList||'None'}
-
-WARNINGS (${(rec.warn_items||[]).length}):
-${warnList||'None'}
-
-Provide:
-1. Root cause analysis for each failure and warning
-2. Step-by-step CLI commands to diagnose (use exact ${cellRef} references)
-3. Physical inspection checklist
-4. Rectification procedure (commands + actions)
-5. Verification commands to confirm fix
-6. Preventive maintenance recommendations`;
-  } else if(mode==='quick'){
-    userMsg = `Give me the quick diagnostic CLI commands for this Tejas TJ1400-7 eNodeB issue:
-
-eNodeB: ${rec.enb_name}, ${rec.band}, Sector ${rec.sector} (${cellRef})
-FAILURES: ${failList||'None'}
-WARNINGS: ${warnList||'None'}
-
-List ONLY the essential EMCLI commands to run first, in order, with brief explanation of what each output tells you.`;
-  } else {
-    userMsg = `Provide a physical inspection checklist for this Tejas TJ1400-7 RRH issue:
-
-eNodeB: ${rec.enb_name}, ${rec.band}, Sector ${rec.sector}
-FAILURES: ${failList||'None'}
-WARNINGS: ${warnList||'None'}
-
-List step-by-step physical checks a field engineer must perform on-site, including safety precautions, what to look for, and what tools are needed.`;
-  }
-
-  try {
-    _diagAbortCtrl = new AbortController();
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: _diagAbortCtrl.signal,
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
-        system: TEJAS_SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: userMsg }],
-        stream: true
-      })
-    });
-
-    if(!resp.ok){
-      const err = await resp.json();
-      renderDiagText(`\n⚠ API Error: ${err.error?.message||resp.status}\n\nEnsure you are accessing this page through a platform that provides the Anthropic API key.`);
-      finishDiag();
-      return;
-    }
-
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while(true){
-      const {done, value} = await reader.read();
-      if(done) break;
-      buffer += decoder.decode(value, {stream:true});
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-      for(const line of lines){
-        if(!line.startsWith('data: ')) continue;
-        const data = line.slice(6).trim();
-        if(data==='[DONE]') continue;
-        try{
-          const ev = JSON.parse(data);
-          if(ev.type==='content_block_delta'&&ev.delta?.type==='text_delta'){
-            _diagCurrentText += ev.delta.text;
-            renderDiagText(_diagCurrentText);
-          }
-        }catch(e){}
-      }
-    }
-  } catch(e){
-    if(e.name!=='AbortError'){
-      renderDiagText(`\n⚠ Connection error: ${e.message}`);
-    }
-  }
-  finishDiag();
+  const item = [...(rec.fail_items||[]),...(rec.warn_items||[])].find(i=>i.key===paramKey);
+  const html = renderKBEntry(kbKey, cellRef, secRef, item);
+  displayDiagResult(html, kbKey);
 }
 
-function renderDiagText(raw){
-  // Convert markers to styled HTML
-  let html = raw
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    // Section headers
-    .replace(/##H1##\s*(.+)/g,'<span class="diag-h1">$1</span>')
-    .replace(/##H2##\s*(.+)/g,'<span class="diag-h2">$1</span>')
-    // Commands — monospace cyan block
-    .replace(/##CMD##\s*(.+)/g,'<code class="diag-cmd">$1</code>')
-    // Notes
-    .replace(/##NOTE##\s*(.+)/g,'<span class="diag-note">⚠ $1</span>')
-    // Steps
-    .replace(/##STEP##\s*(.+)/g,(m,p1,offset,str)=>{
-      const num = (str.substring(0,offset).match(/diag-step-num/g)||[]).length+1;
-      return `<span class="diag-step"><span class="diag-step-num">${num}</span><span>${p1}</span></span>`;
-    })
-    // Inline status
-    .replace(/##OK##\s*(.+)/g,'<span class="diag-ok">✓ $1</span>')
-    .replace(/##WARN##\s*(.+)/g,'<span class="diag-warn">⚠ $1</span>')
-    .replace(/##FAIL##\s*(.+)/g,'<span class="diag-fail">✕ $1</span>')
-    // Bold
-    .replace(/\*\*(.+?)\*\*/g,'<strong style="color:var(--text)">$1</strong>')
-    // Backtick commands
-    .replace(/`([^`]+)`/g,'<code style="background:rgba(0,200,255,.08);color:var(--cyan);padding:1px 5px;border-radius:2px;font-family:var(--mono);font-size:.68rem">$1</code>')
-    // Markdown-style headers
-    .replace(/^### (.+)$/gm,'<span class="diag-h2">$1</span>')
-    .replace(/^## (.+)$/gm,'<span class="diag-h1">$1</span>')
-    .replace(/^# (.+)$/gm,'<span class="diag-h1">$1</span>')
-    // Newlines
-    .replace(/\n/g,'<br>');
-
-  document.getElementById('diag-streaming').innerHTML = html;
-  // Auto-scroll
-  const modal = document.getElementById('diag-modal');
-  modal.scrollTop = modal.scrollHeight;
+function showAllDiag(cellRef, secRef){
+  const rec = _diagStats;
+  const allItems = [...(rec.fail_items||[]),...(rec.warn_items||[])];
+  if(!allItems.length){
+    displayDiagResult(renderKBEntry('general', cellRef, secRef, null), 'general');
+    return;
+  }
+  // Deduplicate by KB key
+  const seen = new Set();
+  let html = '';
+  allItems.forEach(item=>{
+    const kbKey = getKBKey(item.key);
+    if(!seen.has(kbKey)){
+      seen.add(kbKey);
+      html += renderKBEntry(kbKey, cellRef, secRef, item);
+    }
+  });
+  displayDiagResult(html, 'full');
 }
 
-function finishDiag(){
+function showQuickCmds(cellRef, secRef){
+  const rec = _diagStats;
+  const allItems = [...(rec.fail_items||[]),...(rec.warn_items||[])];
+  const seen = new Set();
+  const cmds = [];
+  allItems.forEach(item=>{
+    const kbKey = getKBKey(item.key);
+    if(!seen.has(kbKey)){
+      seen.add(kbKey);
+      const kb = DIAG_KB[kbKey]||DIAG_KB.general;
+      kb.steps.filter(s=>s.type==='cmd').forEach(s=>cmds.push({
+        cmd: s.text.replace(/\{CELL\}/g,cellRef).replace(/\{SEC\}/g,secRef),
+        note: s.note, fault: item.label
+      }));
+    }
+  });
+  if(!cmds.length){ cmds.push(...DIAG_KB.general.steps.filter(s=>s.type==='cmd').map(s=>({cmd:s.text.replace(/\{CELL\}/g,cellRef).replace(/\{SEC\}/g,secRef),note:s.note,fault:'General'}))); }
+  let html = `<div style="font-family:var(--display);font-size:1rem;font-weight:700;color:var(--cyan);letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid rgba(0,200,255,.15);padding-bottom:8px;margin-bottom:14px;">Quick Diagnostic Commands</div>`;
+  let num = 0;
+  cmds.forEach(c=>{
+    num++;
+    html += `<div style="display:flex;gap:8px;margin-bottom:7px;align-items:flex-start;">
+      <span style="min-width:22px;height:22px;background:rgba(0,200,255,.1);border:1px solid rgba(0,200,255,.25);color:var(--cyan);font-family:var(--mono);font-size:.58rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:2px;">${num}</span>
+      <div style="flex:1;">
+        <div style="background:rgba(0,200,255,.05);border:1px solid rgba(0,200,255,.18);border-left:2px solid var(--cyan);padding:6px 12px;border-radius:0 3px 3px 0;font-family:var(--mono);font-size:.72rem;color:var(--cyan);cursor:pointer;user-select:all;" onclick="copyCmd(this)" title="Click to copy">${c.cmd}</div>
+        <div style="font-family:var(--sans);font-size:.62rem;color:var(--muted);margin-top:2px;padding-left:4px;">${c.note||''} <span style="color:rgba(255,184,0,.6)">[${c.fault}]</span></div>
+      </div></div>`;
+  });
+  displayDiagResult(html, 'quick');
+}
+
+function showPhysicalGuide(cellRef, secRef){
+  const rec = _diagStats;
+  const allItems = [...(rec.fail_items||[]),...(rec.warn_items||[])];
+  const seen = new Set();
+  const steps = [];
+  allItems.forEach(item=>{
+    const kbKey = getKBKey(item.key);
+    if(!seen.has(kbKey)){
+      seen.add(kbKey);
+      const kb = DIAG_KB[kbKey]||DIAG_KB.general;
+      kb.steps.filter(s=>s.type==='phys').forEach(s=>steps.push({text:s.text, fault:item.label}));
+    }
+  });
+  let html = `<div style="font-family:var(--display);font-size:1rem;font-weight:700;color:var(--warn);letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid rgba(255,184,0,.15);padding-bottom:8px;margin-bottom:14px;">🔧 Physical Inspection</div>
+  <div style="background:rgba(255,45,85,.07);border:1px solid rgba(255,45,85,.2);border-left:2px solid var(--fail);padding:8px 12px;border-radius:0 3px 3px 0;font-family:var(--mono);font-size:.65rem;color:var(--fail);margin-bottom:14px;letter-spacing:.5px;">⚠ SAFETY: Wear appropriate PPE. Follow site safety procedures. Do not work at height alone.</div>`;
+  if(!steps.length){ html += `<div style="color:var(--muted);font-family:var(--mono);font-size:.7rem;">No specific physical checks required for current issues.</div>`; }
+  let num = 0;
+  steps.forEach(s=>{
+    num++;
+    html += `<div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start;">
+      <span style="min-width:22px;height:22px;background:rgba(255,184,0,.1);border:1px solid rgba(255,184,0,.25);color:var(--warn);font-family:var(--mono);font-size:.58rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:2px;">${num}</span>
+      <div style="flex:1;font-family:var(--sans);font-size:.72rem;color:var(--text2);line-height:1.6;padding-top:2px;">${s.text} <span style="font-family:var(--mono);font-size:.55rem;color:rgba(255,184,0,.5)">[${s.fault}]</span></div>
+    </div>`;
+  });
+  displayDiagResult(html, 'physical');
+}
+
+function displayDiagResult(html, mode){
+  const el = document.getElementById('diag-streaming');
+  el.innerHTML = html;
+  // Build plain text copy version
+  _diagFullText = el.innerText || el.textContent;
+  document.getElementById('diag-response').style.display = 'block';
   document.getElementById('diag-cursor').style.display = 'none';
   document.getElementById('diag-copy-btn').style.display = 'inline-flex';
-  ['diag-btn-full','diag-btn-quick','diag-btn-physical'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){el.disabled=false;el.style.opacity='1';}
-  });
-  // Add "Run another" button
-  document.getElementById('diag-ask').style.display = 'block';
-  document.querySelector('#diag-ask > div:last-child').insertAdjacentHTML('beforeend',
-    '<button class="btn bpurple bsm" onclick="resetDiagButtons()" style="margin-left:auto">⬡ Ask Again</button>');
+  const modal = document.getElementById('diag-modal');
+  modal.scrollTop = 0;
 }
 
-function resetDiagButtons(){
-  document.getElementById('diag-response').style.display='none';
-  document.getElementById('diag-streaming').innerHTML='';
-  _diagCurrentText='';
-  document.getElementById('diag-ask').style.display='block';
-  // Remove extra "Ask Again" buttons
-  document.querySelectorAll('#diag-ask button[onclick="resetDiagButtons()"]').forEach(b=>b.remove());
+function copyCmd(el){
+  const t = el.textContent.trim();
+  navigator.clipboard.writeText(t).then(()=>toast('Command copied: '+t)).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied ✓');
+  });
 }
 
 function copyDiagnosis(){
-  const text = _diagCurrentText;
-  navigator.clipboard.writeText(text).then(()=>toast('Diagnosis report copied ✓')).catch(()=>{
-    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied ✓');
+  navigator.clipboard.writeText(_diagFullText).then(()=>toast('Diagnosis report copied ✓')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=_diagFullText;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied ✓');
   });
 }
+
 // Close modal on backdrop click — deferred so DOM is ready
 window.addEventListener('DOMContentLoaded',function(){
   const dm=document.getElementById('diag-modal');
@@ -3230,13 +3453,13 @@ window.addEventListener('DOMContentLoaded',function(){
     <!-- Ask prompt -->
     <div id="diag-ask" style="padding:16px 20px;border-bottom:1px solid rgba(191,95,255,.1);">
       <div style="font-family:var(--mono);font-size:.6rem;color:rgba(191,95,255,.7);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">⬡ DIAGNOSIS REQUEST</div>
-      <div style="font-family:var(--sans);font-size:.82rem;color:var(--text2);line-height:1.6;margin-bottom:12px;" id="diag-prompt-preview"></div>
+      <div style="font-family:var(--sans);font-size:.78rem;color:var(--text2);line-height:1.6;margin-bottom:12px;" id="diag-prompt-preview"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn bpurple" onclick="runDiagnosis('full')" id="diag-btn-full">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round"/></svg>
           Full Diagnosis & Rectification Steps
         </button>
-        <button class="btn bo bsm" onclick="runDiagnosis('quick')" id="diag-btn-quick">Quick Check Commands</button>
+        <button class="btn bo bsm" onclick="runDiagnosis('quick')" id="diag-btn-quick">⌘ Quick CLI Commands</button>
         <button class="btn bo bsm" onclick="runDiagnosis('physical')" id="diag-btn-physical">Physical Inspection Guide</button>
       </div>
     </div>
@@ -3271,4 +3494,3 @@ window.addEventListener('DOMContentLoaded',function(){
 
 </body>
 </html>
-
