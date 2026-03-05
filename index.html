@@ -2618,10 +2618,30 @@ function openRecord(id){
     <div id="mtbl"></div>${hist}
     <div class="br" style="margin-top:11px">
       <button class="btn bo bsm" onclick="exportRecCSV('${id}')">⬡ EXPORT CSV</button>
+      ${(stats.fi.length||stats.wi.length)?`<button class="btn bpurple bsm" onclick="openDiagnoseFromRecord('${id}')">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6" stroke-linecap="round"/></svg>
+        ⬡ Diagnose Issues
+      </button>`:''}
     </div>`;
   renderSb(stats,'msb');
   renderTables(r.raw_data||{},stats.asmt,'mtbl');
   document.getElementById('mo').classList.add('open');
+}
+
+function openDiagnoseFromRecord(id){
+  const r=C.records.find(x=>x.id===id);if(!r)return;
+  // Build curRec-compatible object from stored record
+  const stats=analyzeData(r.raw_data||{});
+  curRec={
+    id:r.id, enb_name:r.enb_name, band:r.band, sector:r.sector,
+    ba:r.ba||'ALL', report_dt:r.report_dt, by_name:r.by_name,
+    health_pct:stats.hp,
+    fail_items:stats.fi.map(i=>({key:i.key,label:i.label,raw:r.raw_data[i.key],r:i.a.r})),
+    warn_items:stats.wi.map(i=>({key:i.key,label:i.label,raw:r.raw_data[i.key],r:i.a.r}))
+  };
+  // Close record modal first, then open diagnosis
+  document.getElementById('mo').classList.remove('open');
+  setTimeout(()=>openDiagnose(),150);
 }
 
 function reAnalyze(id){
@@ -3245,10 +3265,8 @@ function openDiagnose(){
     `<span style="color:var(--fail)">${(curRec.fail_items||[]).length} failures</span> &nbsp;·&nbsp; `+
     `<span style="color:var(--warn)">${(curRec.warn_items||[]).length} warnings</span>`;
 
-  // Update mode buttons
-  document.getElementById('diag-btn-full').onclick   = ()=>showAllDiag(cellRef, secRef);
-  document.getElementById('diag-btn-quick').onclick  = ()=>showQuickCmds(cellRef, secRef);
-  document.getElementById('diag-btn-physical').onclick = ()=>showPhysicalGuide(cellRef, secRef);
+  // Store refs for button wrappers
+  _diagCellRef = cellRef; _diagSecRef = secRef;
 
   document.getElementById('diag-response').style.display = 'none';
   document.getElementById('diag-streaming').innerHTML = '';
@@ -3264,6 +3282,11 @@ function openDiagnose(){
 function closeDiagnose(){
   document.getElementById('diag-modal').style.display = 'none';
 }
+// Wrapper button handlers — use stored refs set by openDiagnose
+let _diagCellRef='Cell_0', _diagSecRef='0';
+function showAllDiagFromBtn(){ showAllDiag(_diagCellRef, _diagSecRef); }
+function showQuickCmdsFromBtn(){ showQuickCmds(_diagCellRef, _diagSecRef); }
+function showPhysicalFromBtn(){ showPhysicalGuide(_diagCellRef, _diagSecRef); }
 
 // ── Render one KB entry ──
 function renderKBEntry(kbKey, cellRef, secRef, item){
@@ -3455,12 +3478,12 @@ window.addEventListener('DOMContentLoaded',function(){
       <div style="font-family:var(--mono);font-size:.6rem;color:rgba(191,95,255,.7);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">⬡ DIAGNOSIS REQUEST</div>
       <div style="font-family:var(--sans);font-size:.78rem;color:var(--text2);line-height:1.6;margin-bottom:12px;" id="diag-prompt-preview"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn bpurple" onclick="runDiagnosis('full')" id="diag-btn-full">
+        <button class="btn bpurple" onclick="showAllDiagFromBtn()" id="diag-btn-full">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round"/></svg>
           Full Diagnosis & Rectification Steps
         </button>
-        <button class="btn bo bsm" onclick="runDiagnosis('quick')" id="diag-btn-quick">⌘ Quick CLI Commands</button>
-        <button class="btn bo bsm" onclick="runDiagnosis('physical')" id="diag-btn-physical">Physical Inspection Guide</button>
+        <button class="btn bo bsm" onclick="showQuickCmdsFromBtn()" id="diag-btn-quick">⌘ Quick CLI Commands</button>
+        <button class="btn bo bsm" onclick="showPhysicalFromBtn()" id="diag-btn-physical">Physical Inspection Guide</button>
       </div>
     </div>
     <!-- Response area -->
